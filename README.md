@@ -7,6 +7,7 @@
   * Delete an empty list
   * Update list properties
   * List properties
+    * name
     * priority
     * warning period
 * Manage multiple entries per list
@@ -42,7 +43,9 @@
   * ☐ jquery frontend
 * ☐ 0.2: local only
   * ☐ All fields and operations
+  * ☐ Logging fails with fallbacks
 * ☐ 0.3: local first
   * ☐ git style data base
+  * ☐ make thread-safe
   * ☐ Synchronisation
 
