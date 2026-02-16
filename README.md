@@ -35,12 +35,12 @@
 * ✔ = done
 
 * ☐ 0.1: MVP
-  * ☐ Initial design
-  * ☐ Simple JSON db
+  * ✔ Initial design
+  * ✔ Simple JSON db
   * ☐ FastAPI
+  * ☐ jquery frontend
   * ☐ adding lists
   * ☐ adding items
-  * ☐ jquery frontend
 * ☐ 0.2: local only
   * ☐ All fields and operations
   * ☐ Logging fails with fallbacks
