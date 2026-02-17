@@ -37,7 +37,7 @@
 * ☐ 0.1: MVP
   * ✔ Initial design
   * ✔ Simple JSON db
-  * ☐ FastAPI
+  * ✔ FastAPI
   * ☐ jquery frontend
   * ☐ adding lists
   * ☐ adding items

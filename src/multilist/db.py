@@ -73,7 +73,7 @@ class Database:
             if ident not in hashDict:
                 hashDict[ident] = item
                 return
-            item.collision += 1
+            item["collision"] += 1
 
     # ---------- List API ----------
     def addList(self):

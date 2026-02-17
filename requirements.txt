@@ -1,1 +1,2 @@
 isodate
+fastapi[standard]
