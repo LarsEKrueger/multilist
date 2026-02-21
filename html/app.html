@@ -24,6 +24,12 @@
          border-style:solid;
          margin: 4px;
       }
+      .button:active {
+         border-left-color: #cccccc;
+         border-top-color: #cccccc;
+         border-right-color: #eeeeee;
+         border-bottom-color: #eeeeee;
+      }
       .editBtn::after {
         content:"\270f";
       }
@@ -127,6 +133,12 @@
                 });
               });
             });
+            <!-- Handle add items clicks -->
+            $( "#ai-" + listId).click(function() {
+              $.ajax({ url: "/items/" + listId, type: "POST", dataType:"json"}).done(function(items) {
+                refreshLists();
+              });
+            });
           });
         })
       }
@@ -134,6 +146,11 @@
       <!-- Load the initial list -->
       $( document ).ready(function() {
         refreshLists();
+        $( "#addList").click(function() {
+          $.ajax({ url: "/lists", type: "POST", dataType:"json"}).done(function(items) {
+            refreshLists();
+          });
+        });
       });
     </script>
     <span id="addList" class="button addBtn"></span>

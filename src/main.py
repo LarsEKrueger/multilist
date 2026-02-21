@@ -30,7 +30,7 @@ async def jquery():
 async def getLists():
   return database.getLists()
 
-@app.post("/addList")
+@app.post("/lists")
 async def addList():
     database.addList()
     return {}
@@ -66,3 +66,7 @@ async def items(listId:str):
 @app.get("/item/{listId}/{itemId}")
 async def itemProp(listId:str,itemId:str):
     return database.getItemProperties(listId,itemId)
+
+@app.post("/items/{listId}")
+async def addItem(listId:str):
+    database.addItem(listId)

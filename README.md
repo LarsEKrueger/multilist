@@ -40,14 +40,16 @@
   * ✔ FastAPI
   * ✔ jquery frontend
   * ✔ Basic CSS
-  * ☐ adding lists
-  * ☐ adding items
+  * ✔ adding lists
+  * ✔ adding items
 * ☐ 0.2: local only
   * ☐ editing fields
-  * ☐ All fields and operations
+  * ☐ deleting items
+  * ☐ Show Items that expire soon
   * ☐ Logging fails with fallbacks
 * ☐ 0.3: local first
   * ☐ git-style data base
   * ☐ make thread-safe
   * ☐ Synchronisation
+  * ☐ Only return public DB fields
 
