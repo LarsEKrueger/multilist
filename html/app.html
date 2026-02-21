@@ -1,15 +1,143 @@
+<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8">
     <title>MultiList App</title>
+    <style>
+      .button {
+         background: #dddddd;
+         border-left-color: #eeeeee;
+         border-top-color: #eeeeee;
+         border-right-color: #cccccc;
+         border-bottom-color: #cccccc;
+         border-width: 1px;
+         border-style:solid;
+         margin: 5px;
+      }
+      .button:hover {
+         background: #ddddee;
+         border-left-color: #eeeeee;
+         border-top-color: #eeeeee;
+         border-right-color: #cccccc;
+         border-bottom-color: #cccccc;
+         border-width: 2px;
+         border-style:solid;
+         margin: 4px;
+      }
+      .editBtn::after {
+        content:"\270f";
+      }
+      .delBtn {
+        position:absolute;
+        right: 10px;
+      }
+      .delBtn::after {
+        content:"\274c";
+      }
+      .addBtn {
+      }
+      .addBtn::after {
+        content:"\2795";
+      }
+
+      .lists {
+        list-style-position:inside;
+        padding:0px;
+        margin:0px;
+      }
+      .listEntry {
+        border:solid;
+        border-width:1px;
+        margin: 4px;
+        background:#eeeeff;
+      }
+      .listEntry::marker {
+        content:none;
+      }
+
+      .items {
+        padding:5px;
+      }
+      .itemEntry {
+        background:#eeffff;
+        margin:1px;
+
+      }
+      .itemEntry::marker {
+        content:none;
+      }
+    </style>
   </head>
   <body>
     <script src="jquery.js"></script>
     <script>
+      <!-- Refresh all lists -->
+      function refreshLists( ) {
+        $.ajax({ url: "/lists", type: "GET", dataType:"json"}).done(function(json) {
+          $( "#lists").empty();
+          $.each( json, function(index,listId) {
+            <!-- Create the list as a DOM list item -->
+            $( "<li class='listEntry' id='" + listId + "'>" +
+                  "<div class='listHeader' id='" + listId + "'>" +
+                    "<span class='button delBtn' id='del-" + listId + "'></span>" +
+                    "<span class='listName' id='ln-" + listId + "'></span>" +
+                    "<span class='button editBtn' id='eln-" + listId + "'></span>" +
+                    "<span class='period' id='wp-" + listId + "'></span>" +
+                    "<span class='button editBtn' id='elp-" + listId + "'></span>" +
+                    "<span class='button addBtn' id='ai-" + listId + "'></span>" +
+                  "</div>" +
+                  "<ul class='items' id='it-" + listId + "'></ul>" +
+               "</li>"
+            ).appendTo( "#lists");
+            <!-- Populate the properties -->
+            $.ajax({ url: '/listProps/' + listId, type: "GET", dataType:"json"}).done(function(json) {
+              $( '#ln-' + listId).text( json['name']);
+              $( '#wp-' + listId).text( json['warning_period']);
+            });
+            <!-- Populate the list items -->
+            $.ajax({ url: "/items/"+ listId, type: "GET", dataType:"json"}).done(function(items) {
+              listDom = $( "it-" + listId).empty();
+              $.each(items,function(itemInd, itemId) {
+                <!-- Create the item as a dom list item -->
+                $( "<li class='itemEntry' id='" + itemId + "'>"+
+                    "<div class='itemHeader' id='" + itemId + "'>" +
+                      "<span class='button delBtn' id='del-" + itemId + "'></span>" +
+                      "<span class='itemSubject' id='is-" + itemId + "'></span>" +
+                      "<span class='button editBtn' id='eis-" + itemId + "'></span>" +
+                      "<span class='date' id='exp-" + itemId + "'></span>" +
+                      "<span class='button editBtn' id='eexp-" + itemId + "'></span>" +
+                      "<span class='priority' id='prio-" + itemId + "'></span>" +
+                      "<span class='button editBtn' id='eprio-" + itemId + "'></span>" +
+                      "<span class='status' id='status-" + itemId + "'></span>" +
+                      "<span class='button editBtn' id='estatus-" + itemId + "'></span>" +
+                    "</div>" +
+                    "<div class='itemBody' id=ib-'" + itemId + "'>" +
+                      "<span class='itemDesc' id='desc-" + itemId + "'></span>" +
+                      "<span class='button editBtn' id='edesc-" + itemId + "'></span>" +
+                    "</div>" +
+                   "</li>").appendTo( "#it-" + listId);
+                <!-- Populate the item -->
+                $.ajax({ url: "/item/"+ listId+ "/" + itemId, type: "GET", dataType:"json"}).done(function(itemProp) {
+                  console.log(itemProp);
+                  $( '#is-' + itemId).text( itemProp['subject']);
+                  $( '#exp-' + itemId).text( itemProp['expires']);
+                  $( '#prio-' + itemId).text( itemProp['priority']);
+                  $( '#status-' + itemId).text( itemProp['status']);
+                  $( '#desc-' + itemId).text( itemProp['details']);
+                });
+              });
+            });
+          });
+        })
+      }
 
+      <!-- Load the initial list -->
+      $( document ).ready(function() {
+        refreshLists();
+      });
     </script>
-    <span id="addList" class="button">Add List</span>
-    <ul id="lists">
+    <span id="addList" class="button addBtn"></span>
+    <ul class='lists' id="lists">
     </ul>
   </body>
 </html>

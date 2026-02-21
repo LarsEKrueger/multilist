@@ -38,14 +38,16 @@
   * ✔ Initial design
   * ✔ Simple JSON db
   * ✔ FastAPI
-  * ☐ jquery frontend
+  * ✔ jquery frontend
+  * ✔ Basic CSS
   * ☐ adding lists
   * ☐ adding items
 * ☐ 0.2: local only
+  * ☐ editing fields
   * ☐ All fields and operations
   * ☐ Logging fails with fallbacks
 * ☐ 0.3: local first
-  * ☐ git style data base
+  * ☐ git-style data base
   * ☐ make thread-safe
   * ☐ Synchronisation
 

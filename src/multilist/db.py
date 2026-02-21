@@ -78,7 +78,7 @@ class Database:
     # ---------- List API ----------
     def addList(self):
         """Add an empty list"""
-        newList = {"collision": 0}
+        newList = {"name": "New List", "collision": 0}
         self._updateHashDict_(self.data, newList)
         self._write_()
 
