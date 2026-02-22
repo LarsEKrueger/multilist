@@ -47,6 +47,8 @@
       }
 
       .lists {
+        display:flex;
+        flex-direction:column;
         list-style-position:inside;
         padding:0px;
         margin:0px;
@@ -56,6 +58,7 @@
         border-width:1px;
         margin: 4px;
         background:#eeeeff;
+        order:1000000;
       }
       .listEntry::marker {
         content:none;
@@ -72,11 +75,53 @@
       .itemEntry::marker {
         content:none;
       }
+      .editField {
+         background: #ffffff;
+         border-left-color: #cccccc;
+         border-top-color: #cccccc;
+         border-right-color: #eeeeee;
+         border-bottom-color: #eeeeee;
+         border-width: 1px;
+         border-style:solid;
+         margin: 5px;
+         resize:horizontal;
+         overflow:hidden;
+         display:inline-block;
+      }
     </style>
   </head>
   <body>
     <script src="jquery.js"></script>
     <script>
+      <!-- set the order of an list item using flex -->
+      function setOrderFromPrio( listId, prio)
+      {
+        var s=undefined;
+        if( !isNaN(prio))
+        {
+          // prio is a number. Set as flex-order.
+          s='order:'+prio+';';
+        }
+        $( '#'+ listId).attr('style',s);
+      }
+      <!-- Function to make display items editable -->
+      function linkEditBtn( suffix, varName, fieldId, btnId, callback) {
+        $( '#' + btnId).click( function() {
+          if( $( '#' + fieldId).attr('contenteditable') === undefined) {
+            $( '#' + fieldId).attr('contenteditable','true').addClass('editField');
+          } else {
+            var text=$( '#' + fieldId).removeAttr('contenteditable').removeClass('editField').text();
+            data = {};
+            data[varName]=text;
+            if( callback !== undefined) {
+              console.log( 'linkEditBtn callback');
+              callback( text);
+            }
+            $.ajax({ url: "/" + suffix, type: "PUT", contentType:"application/json", data:JSON.stringify(data)}).done(function(json) {
+            });
+          }
+        })
+      }
       <!-- Refresh all lists -->
       function refreshLists( ) {
         $.ajax({ url: "/lists", type: "GET", dataType:"json"}).done(function(json) {
@@ -89,53 +134,89 @@
                     "<span class='listName' id='ln-" + listId + "'></span>" +
                     "<span class='button editBtn' id='eln-" + listId + "'></span>" +
                     "<span class='period' id='wp-" + listId + "'></span>" +
-                    "<span class='button editBtn' id='elp-" + listId + "'></span>" +
+                    "<span class='button editBtn' id='ewp-" + listId + "'></span>" +
+                    "<span class='period' id='prio-" + listId + "'></span>" +
+                    "<span class='button editBtn' id='eprio-" + listId + "'></span>" +
                     "<span class='button addBtn' id='ai-" + listId + "'></span>" +
                   "</div>" +
                   "<ul class='items' id='it-" + listId + "'></ul>" +
                "</li>"
             ).appendTo( "#lists");
             <!-- Populate the properties -->
-            $.ajax({ url: '/listProps/' + listId, type: "GET", dataType:"json"}).done(function(json) {
+            $.ajax({ url: '/list/' + listId, type: "GET", dataType:"json"}).done(function(json) {
               $( '#ln-' + listId).text( json['name']);
               $( '#wp-' + listId).text( json['warning_period']);
+              let prio=json['priority'];
+              $( '#prio-' + listId).text( prio);
+              setOrderFromPrio( listId, prio);
+            });
+            <!-- Make properties editable -->
+            linkEditBtn( 'list/' + listId, 'name', 'ln-' + listId, 'eln-' + listId);
+            linkEditBtn( 'list/' + listId, 'priority', 'prio-' + listId, 'eprio-' + listId, function(value) {setOrderFromPrio(listId,value);});
+            linkEditBtn( 'list/' + listId, 'warning_period', 'wp-' + listId, 'ewp-' + listId);
+            <!-- Delete list button -->
+            $( '#del-' + listId).click(function() {
+              if( confirm( "Delete list?")) {
+                $.ajax({ url: '/list/' + listId, type: "DELETE"}).done(function(json) {
+                  if( json === true) {
+                    refreshLists();
+                  } else {
+                    alert( "Only empty lists can be deleted.")
+                  }
+                });
+              }
             });
             <!-- Populate the list items -->
             $.ajax({ url: "/items/"+ listId, type: "GET", dataType:"json"}).done(function(items) {
               listDom = $( "it-" + listId).empty();
               $.each(items,function(itemInd, itemId) {
+                let uId=listId+'-'+itemId;
                 <!-- Create the item as a dom list item -->
-                $( "<li class='itemEntry' id='" + itemId + "'>"+
-                    "<div class='itemHeader' id='" + itemId + "'>" +
-                      "<span class='button delBtn' id='del-" + itemId + "'></span>" +
-                      "<span class='itemSubject' id='is-" + itemId + "'></span>" +
-                      "<span class='button editBtn' id='eis-" + itemId + "'></span>" +
-                      "<span class='date' id='exp-" + itemId + "'></span>" +
-                      "<span class='button editBtn' id='eexp-" + itemId + "'></span>" +
-                      "<span class='priority' id='prio-" + itemId + "'></span>" +
-                      "<span class='button editBtn' id='eprio-" + itemId + "'></span>" +
-                      "<span class='status' id='status-" + itemId + "'></span>" +
-                      "<span class='button editBtn' id='estatus-" + itemId + "'></span>" +
+                $( "<li class='itemEntry' id='" + uId + "'>"+
+                    "<div class='itemHeader' id='" + uId + "'>" +
+                      "<span class='button delBtn' id='del-" + uId + "'></span>" +
+                      "<span class='itemSubject' id='is-" + uId + "'></span>" +
+                      "<span class='button editBtn' id='eis-" + uId + "'></span>" +
+                      "<span class='date' id='exp-" + uId + "'></span>" +
+                      "<span class='button editBtn' id='eexp-" + uId + "'></span>" +
+                      "<span class='priority' id='prio-" + uId + "'></span>" +
+                      "<span class='button editBtn' id='eprio-" + uId + "'></span>" +
+                      "<span class='status' id='status-" + uId + "'></span>" +
+                      "<span class='button editBtn' id='estatus-" + uId + "'></span>" +
                     "</div>" +
-                    "<div class='itemBody' id=ib-'" + itemId + "'>" +
-                      "<span class='itemDesc' id='desc-" + itemId + "'></span>" +
-                      "<span class='button editBtn' id='edesc-" + itemId + "'></span>" +
+                    "<div class='itemBody' id=ib-'" + uId + "'>" +
+                      "<span class='itemDesc' id='desc-" + uId + "'></span>" +
+                      "<span class='button editBtn' id='edesc-" + uId + "'></span>" +
                     "</div>" +
                    "</li>").appendTo( "#it-" + listId);
                 <!-- Populate the item -->
                 $.ajax({ url: "/item/"+ listId+ "/" + itemId, type: "GET", dataType:"json"}).done(function(itemProp) {
                   console.log(itemProp);
-                  $( '#is-' + itemId).text( itemProp['subject']);
-                  $( '#exp-' + itemId).text( itemProp['expires']);
-                  $( '#prio-' + itemId).text( itemProp['priority']);
-                  $( '#status-' + itemId).text( itemProp['status']);
-                  $( '#desc-' + itemId).text( itemProp['details']);
+                  $( '#is-' + uId).text( itemProp['subject']);
+                  $( '#exp-' + uId).text( itemProp['expires']);
+                  $( '#prio-' + uId).text( itemProp['priority']);
+                  $( '#status-' + uId).text( itemProp['status']);
+                  $( '#desc-' + uId).text( itemProp['details']);
+                });
+                <!-- Link the edit buttons -->
+                linkEditBtn( 'updateItem/' + listId + '/' + itemId, 'subject', 'is-' + uId, 'eis-' + uId);
+                linkEditBtn( 'updateItem/' + listId + '/' + itemId, 'expires', 'exp-' + uId, 'eexp-' + uId);
+                linkEditBtn( 'updateItem/' + listId + '/' + itemId, 'priority', 'prio-' + uId, 'eprio-' + uId);
+                linkEditBtn( 'updateItem/' + listId + '/' + itemId, 'status', 'status-' + uId, 'estatus-' + uId);
+                linkEditBtn( 'updateItem/' + listId + '/' + itemId, 'details', 'desc-' + uId, 'edesc-' + uId);
+                <!-- Delete item button -->
+                $( '#del-' + uId).click(function() {
+                  if( confirm( "Delete item?")) {
+                    $.ajax({ url: '/item/' + listId + '/' + itemId, type: "DELETE"}).done(function(json) {
+                      refreshLists();
+                    });
+                  }
                 });
               });
             });
             <!-- Handle add items clicks -->
             $( "#ai-" + listId).click(function() {
-              $.ajax({ url: "/items/" + listId, type: "POST", dataType:"json"}).done(function(items) {
+              $.ajax({ url: "/items/" + listId, type: "POST"}).done(function(items) {
                 refreshLists();
               });
             });

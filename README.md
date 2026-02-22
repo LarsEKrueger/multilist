@@ -27,6 +27,10 @@
 * Authentification for manipulating lists: Teaching example / for local use only
 * Authentification for synchronisation: Teaching example / for use in local network only
 
+## Design decisions
+* Item ids must remain stable
+* Item ids will be used by front-end for DOM object ids
+
 ## Roadmap
 
 ### Legend
@@ -34,7 +38,7 @@
 * ☐ = not done yet
 * ✔ = done
 
-* ☐ 0.1: MVP
+* ✔ MVP
   * ✔ Initial design
   * ✔ Simple JSON db
   * ✔ FastAPI
@@ -42,14 +46,22 @@
   * ✔ Basic CSS
   * ✔ adding lists
   * ✔ adding items
-* ☐ 0.2: local only
-  * ☐ editing fields
-  * ☐ deleting items
+* ☐ 0.1: local only
+  * ✔ editing fields
+  * ✔ deleting items
+  * ✔ sort by priority
+  * ☐ UUID data base
   * ☐ Show Items that expire soon
-  * ☐ Logging fails with fallbacks
-* ☐ 0.3: local first
-  * ☐ git-style data base
+* ☐ 0.2: local first
   * ☐ make thread-safe
   * ☐ Synchronisation
+    * ☐ Backend
+    * ☐ Update frontend when sync changed something
   * ☐ Only return public DB fields
+  * ☐ Error handling in JS/AJAX
+* ☐ 0.3: fancy
+  * ☐ Frontend design
+  * ☐ Datepicker
+  * ☐ Text input via <input> / <textbox>
+  * ☐ jquery UI
 
