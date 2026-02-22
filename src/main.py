@@ -47,7 +47,6 @@ class ListProps(BaseModel):
 
 @app.put("/list/{listId}")
 async def updateList(listId: str, listProps: ListProps):
-    print(f"{listId}: {listProps}")
     database.updateList(
         listId, listProps.name, listProps.priority, listProps.warning_period
     )

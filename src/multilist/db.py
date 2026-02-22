@@ -1,7 +1,7 @@
 # Database abstraxction class for multilist application server
 
 import json
-import hashlib
+import uuid
 import os.path
 from datetime import date, timedelta
 
@@ -22,25 +22,25 @@ class Database:
 
         Format:
         [
-          "<listId>": {
+          "<uuid of list>": {
             "name": "<name of the list>",
             "priority": <priority as int>,
             "warning_period": <warning period as ISO period>
             "items": {
-                  "<hash of item>": {
+                  "<uuid of item>": {
                     "subject": "<subject string>",
                     "details": "<detail text>",
                     "expires": <expiration data as ISO date or empty string>,
                     "priority": <priority as int>,
                     "status": <status as string>
                   },
-                  "<hash of item>": {
+                  "<uuid of item>": {
                     ...
                   },
                   ...
             }
           },
-          "<listId>": {
+          "<uuid of list>": {
             ...
           }
         ]
@@ -63,22 +63,21 @@ class Database:
 
     def _updateHashDict_(self, hashDict, item):
         """Check if the json representation of item would create a hash
-        collision. If yes, increment the field "collision" until no
+        collision. If yes, get a new uuid until no
         collision happens anymore.
         """
         # TODO prevent endless loop, if too many collisions happen
         while True:
             d = json.dumps(item)
-            ident = hashlib.sha1(d.encode()).hexdigest()
+            ident = uuid.uuid1().hex
             if ident not in hashDict:
                 hashDict[ident] = item
                 return
-            item["collision"] += 1
 
     # ---------- List API ----------
     def addList(self):
         """Add an empty list"""
-        newList = {"name": "New List", "collision": 0}
+        newList = {"name": "New List"}
         self._updateHashDict_(self.data, newList)
         self._write_()
 
@@ -100,11 +99,9 @@ class Database:
         """Update the fields of a particular list. Only change those fields that are not None."""
         # TODO: Make thread safe
         data = self.data[listId]
-        del self.data[listId]
         _updateDict_(data, "name", name)
         _updateDict_(data, "priority", priority)
         _updateDict_(data, "warning_period", warning_period)
-        self._updateHashDict_(self.data, data)
         self._write_()
 
     def getLists(self):
@@ -144,13 +141,11 @@ class Database:
         """Update the fields of a particular item.  Only change those fields that are not None."""
         # TODO: Make thread safe
         data = self.data[listId]["items"][itemId]
-        del self.data[listId]["items"][itemId]
         _updateDict_(data, "subject", subject)
         _updateDict_(data, "details", details)
         _updateDict_(data, "expires", expires)
         _updateDict_(data, "priority", priority)
         _updateDict_(data, "status", status)
-        self._updateHashDict_(self.data[listId]["items"], data)
         self._write_()
 
     def getItems(self, listId):
