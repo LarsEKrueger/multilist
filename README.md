@@ -61,7 +61,8 @@
   * ☐ Error handling in JS/AJAX
 * ☐ 0.3: fancy
   * ☐ Frontend design
-  * ☐ Datepicker
-  * ☐ Text input via <input> / <textbox>
   * ☐ jquery UI
+  * ☐ Datepicker
+  * ☐ Duration Picker
+  * ☐ Text input via <input> / <textbox>
 

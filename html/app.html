@@ -64,15 +64,24 @@
         content:none;
       }
 
+      .soon {
+        display:flex;
+        flex-direction:column;
+        padding:5px;
+        margin:0;
+      }
+      .soonEntry {
+        background:#ffcccc;
+        margin:1px;
+        order:1000000;
+      }
+      .soonEntry::marker {
+        content:none;
+      }
       .items {
         display:flex;
         flex-direction:column;
         padding:5px;
-      }
-      .itemEntry {
-        background:#eeffff;
-        margin:1px;
-        order:1000000;
       }
       .itemEntry::marker {
         content:none;
@@ -238,6 +247,8 @@
         });
       });
     </script>
+    <ul class='soon' id='soon'>
+    </ul>
     <span id="addList" class="button addBtn"></span>
     <ul class='lists' id="lists">
     </ul>
