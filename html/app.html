@@ -65,12 +65,14 @@
       }
 
       .items {
+        display:flex;
+        flex-direction:column;
         padding:5px;
       }
       .itemEntry {
         background:#eeffff;
         margin:1px;
-
+        order:1000000;
       }
       .itemEntry::marker {
         content:none;
@@ -194,16 +196,18 @@
                   console.log(itemProp);
                   $( '#is-' + uId).text( itemProp['subject']);
                   $( '#exp-' + uId).text( itemProp['expires']);
-                  $( '#prio-' + uId).text( itemProp['priority']);
                   $( '#status-' + uId).text( itemProp['status']);
                   $( '#desc-' + uId).text( itemProp['details']);
+                  var prio=itemProp['priority'];
+                  $( '#prio-' + uId).text( prio);
+                  setOrderFromPrio( uId, prio);
                 });
                 <!-- Link the edit buttons -->
-                linkEditBtn( 'updateItem/' + listId + '/' + itemId, 'subject', 'is-' + uId, 'eis-' + uId);
-                linkEditBtn( 'updateItem/' + listId + '/' + itemId, 'expires', 'exp-' + uId, 'eexp-' + uId);
-                linkEditBtn( 'updateItem/' + listId + '/' + itemId, 'priority', 'prio-' + uId, 'eprio-' + uId);
-                linkEditBtn( 'updateItem/' + listId + '/' + itemId, 'status', 'status-' + uId, 'estatus-' + uId);
-                linkEditBtn( 'updateItem/' + listId + '/' + itemId, 'details', 'desc-' + uId, 'edesc-' + uId);
+                linkEditBtn( 'item/' + listId + '/' + itemId, 'subject', 'is-' + uId, 'eis-' + uId);
+                linkEditBtn( 'item/' + listId + '/' + itemId, 'expires', 'exp-' + uId, 'eexp-' + uId);
+                linkEditBtn( 'item/' + listId + '/' + itemId, 'priority', 'prio-' + uId, 'eprio-' + uId, function(value) {setOrderFromPrio(uId,value);});
+                linkEditBtn( 'item/' + listId + '/' + itemId, 'status', 'status-' + uId, 'estatus-' + uId);
+                linkEditBtn( 'item/' + listId + '/' + itemId, 'details', 'desc-' + uId, 'edesc-' + uId);
                 <!-- Delete item button -->
                 $( '#del-' + uId).click(function() {
                   if( confirm( "Delete item?")) {

@@ -50,7 +50,7 @@
   * ✔ editing fields
   * ✔ deleting items
   * ✔ sort by priority
-  * ☐ UUID data base
+  * ✔ UUID data base
   * ☐ Show Items that expire soon
 * ☐ 0.2: local first
   * ☐ make thread-safe
