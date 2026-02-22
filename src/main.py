@@ -97,9 +97,23 @@ async def addItem(listId: str):
     database.addItem(listId)
 
 
+class ItemProps(BaseModel):
+    subject: str | None = None
+    details: str | None = None
+    expires: str | None = None
+    priority: int | None = None
+    status: str | None = None
+
+
 @app.put("/item/{listId}/{itemId}")
 async def updateItem(listId: str, itemId: str, itemProps: ItemProps):
     database.updateItem(
-        listId, itemId, listProps.name, listProps.priority, listProps.warning_period
+        listId,
+        itemId,
+        itemProps.subject,
+        itemProps.details,
+        itemProps.expires,
+        itemProps.priority,
+        itemProps.status,
     )
     return {}
