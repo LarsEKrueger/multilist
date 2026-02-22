@@ -96,8 +96,9 @@ async def itemProp(listId: str, itemId: str):
 async def addItem(listId: str):
     database.addItem(listId)
 
+
 @app.put("/item/{listId}/{itemId}")
-async def updateItem(listId: str, itemId:str, itemProps: ItemProps):
+async def updateItem(listId: str, itemId: str, itemProps: ItemProps):
     database.updateItem(
         listId, itemId, listProps.name, listProps.priority, listProps.warning_period
     )
