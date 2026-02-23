@@ -51,7 +51,7 @@
   * ✔ deleting items
   * ✔ sort by priority
   * ✔ UUID data base
-  * ☐ Show Items that expire soon
+  * ✔ Show Items that expire soon
 * ☐ 0.2: local first
   * ☐ make thread-safe
   * ☐ Synchronisation

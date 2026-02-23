@@ -104,6 +104,22 @@
   <body>
     <script src="jquery.js"></script>
     <script>
+      <!-- Compute milliseconds from a simplified ISO period string -->
+      function computeMsOfPeriod(periodString) {
+        const periodRegex = /^(\d+)([dwm])$/i;
+        const periodMatch = periodRegex.exec(periodString);
+        if( periodMatch !== null) {
+          var days = parseInt(periodMatch[1]);
+          if (periodMatch[2].toLowerCase() == 'w') {
+            days = days * 7;
+          } else if( periodMatch[2].toLowerCase() == 'm') {
+            days = days * 30;
+          }
+          return days * 24 * 3600 * 1000;
+        } else {
+          return undefined;
+        }
+      }
       <!-- set the order of an list item using flex -->
       function setOrderFromPrio( listId, prio)
       {
@@ -125,7 +141,6 @@
             data = {};
             data[varName]=text;
             if( callback !== undefined) {
-              console.log( 'linkEditBtn callback');
               callback( text);
             }
             $.ajax({ url: "/" + suffix, type: "PUT", contentType:"application/json", data:JSON.stringify(data)}).done(function(json) {
@@ -153,10 +168,12 @@
                   "<ul class='items' id='it-" + listId + "'></ul>" +
                "</li>"
             ).appendTo( "#lists");
-            <!-- Populate the properties -->
-            $.ajax({ url: '/list/' + listId, type: "GET", dataType:"json"}).done(function(json) {
+            var warning_period = '';
+            <!-- Populate the properties. Do it synchronously to simplify getting the warning period.-->
+            $.ajax({ url: '/list/' + listId, type: "GET", dataType:"json", async:false}).done(function(json) {
               $( '#ln-' + listId).text( json['name']);
-              $( '#wp-' + listId).text( json['warning_period']);
+              warning_period = json['warning_period'];
+              $( '#wp-' + listId).text( warning_period);
               let prio=json['priority'];
               $( '#prio-' + listId).text( prio);
               setOrderFromPrio( listId, prio);
@@ -177,6 +194,9 @@
                 });
               }
             });
+            const warningMs = computeMsOfPeriod(warning_period);
+            const now=Date.now();
+            const warningExpires = now + warningMs;
             <!-- Populate the list items -->
             $.ajax({ url: "/items/"+ listId, type: "GET", dataType:"json"}).done(function(items) {
               listDom = $( "it-" + listId).empty();
@@ -203,13 +223,28 @@
                 <!-- Populate the item -->
                 $.ajax({ url: "/item/"+ listId+ "/" + itemId, type: "GET", dataType:"json"}).done(function(itemProp) {
                   console.log(itemProp);
-                  $( '#is-' + uId).text( itemProp['subject']);
-                  $( '#exp-' + uId).text( itemProp['expires']);
+                  const subjStr = itemProp['subject'];
+                  $( '#is-' + uId).text( subjStr);
+                  const expStr=itemProp['expires'];
+                  $( '#exp-' + uId).text( expStr);
                   $( '#status-' + uId).text( itemProp['status']);
-                  $( '#desc-' + uId).text( itemProp['details']);
+                  const descStr = itemProp['details'];
+                  $( '#desc-' + uId).text( descStr);
                   var prio=itemProp['priority'];
                   $( '#prio-' + uId).text( prio);
                   setOrderFromPrio( uId, prio);
+                  <!-- If now is within the warning period, add a simple item to the warning list. -->
+                  const expires = new Date(expStr).valueOf();
+                  if (expires < warningExpires) {
+                    $( "<li class='soonEntry'>" + 
+                         "<div class='soonEntrySubj'>" + 
+                           "<span class='soonEntrySubjTxt'>" + subjStr + "</span>" +
+                           " expires soon." + 
+                         "</div>" +
+                         "<div class='soonEntryDesc'>" + descStr +
+                         "</div>" +
+                       "</li>").appendTo( '#soon');
+                  }
                 });
                 <!-- Link the edit buttons -->
                 linkEditBtn( 'item/' + listId + '/' + itemId, 'subject', 'is-' + uId, 'eis-' + uId);
