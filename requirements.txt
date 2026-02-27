@@ -1,2 +1,3 @@
 isodate
 fastapi[standard]
+pydantic-settings

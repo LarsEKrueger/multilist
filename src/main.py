@@ -1,13 +1,38 @@
 #! /usr/bin/python3
 
 from multilist import db
+import multilist.version as mlv
 from fastapi import FastAPI
 from fastapi.responses import Response
 from pydantic import BaseModel
+from pydantic_settings import BaseSettings
 
-app = FastAPI()
+import asyncio
+from contextlib import asynccontextmanager
 
-database = db.Database("test.json")
+class AppSettings( BaseSettings):
+    ML_DB_JSON : str = "multilist.json"
+    ML_SYNC_URL : str = "localhost:8001"
+
+app_settings = AppSettings()
+print(app_settings.ML_DB_JSON)
+
+async def backgroundSync():
+    """Function to run in the background. It will periodically connect to other servers and synchronize the databases."""
+    while True:
+        print("ping")
+        await asyncio.sleep(1)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    task = asyncio.create_task(backgroundSync())
+    yield
+
+
+database = db.Database(app_settings.ML_DB_JSON)
+
+app = FastAPI(lifespan=lifespan)
 
 
 def serveFile(filename, mediaType):
@@ -26,6 +51,10 @@ async def root():
 @app.get("/jquery.js")
 async def jquery():
     return serveFile("jquery/jquery-4.0.0.min.js", "application/javascript")
+
+@app.get("/version")
+async def version():
+    return { "name": mlv.name, "version": mlv.version }
 
 
 @app.get("/lists")

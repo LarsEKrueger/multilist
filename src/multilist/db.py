@@ -3,7 +3,7 @@
 import json
 import uuid
 import os.path
-from datetime import date, timedelta
+import time
 
 
 def _updateDict_(d, field, value):
@@ -11,6 +11,19 @@ def _updateDict_(d, field, value):
     if value is not None:
         d[field] = value
 
+
+def _updateHashDict_(hashDict, item):
+    """Create a new uuid and insert the item into the dict. Should the uuid
+    already exist, retry until it succeeds. This will eventually happen, as
+    uuid1 is time-based."""
+    while True:
+        ident = uuid.uuid1().hex
+        if ident not in hashDict:
+            hashDict[ident] = item
+            return
+
+def _modifiedNow_(data):
+    data['last_modified'] = time.time_ns()
 
 class Database:
     """Abstracts all database operations into a class API"""
@@ -61,24 +74,11 @@ class Database:
         with open(self.path, "wt") as f:
             json.dump(self.data, f)
 
-    def _updateHashDict_(self, hashDict, item):
-        """Check if the json representation of item would create a hash
-        collision. If yes, get a new uuid until no
-        collision happens anymore.
-        """
-        # TODO prevent endless loop, if too many collisions happen
-        while True:
-            d = json.dumps(item)
-            ident = uuid.uuid1().hex
-            if ident not in hashDict:
-                hashDict[ident] = item
-                return
-
     # ---------- List API ----------
     def addList(self):
         """Add an empty list"""
-        newList = {"name": "New List"}
-        self._updateHashDict_(self.data, newList)
+        newList = {"name": "New List", "warning_period": "1w", "last_modified": time.time_ns()}
+        _updateHashDict_(self.data, newList)
         self._write_()
 
     def deleteList(self, listId):
@@ -102,6 +102,7 @@ class Database:
         _updateDict_(data, "name", name)
         _updateDict_(data, "priority", priority)
         _updateDict_(data, "warning_period", warning_period)
+        _modifiedNow_(data)
         self._write_()
 
     def getLists(self):
@@ -115,12 +116,12 @@ class Database:
     # ---------- item API ----------
     def addItem(self, listId):
         """Add an item to the given list."""
-        newItem = {"collision": 0}
+        newItem = {"subject": "New item", "last_modified": time.time_ns()}
         # TODO: Make thread safe
         data = self.data[listId]
         if not "items" in data:
             data["items"] = {}
-        self._updateHashDict_(data["items"], newItem)
+        _updateHashDict_(data["items"], newItem)
         self._write_()
 
     def deleteItem(self, listId, itemId):
@@ -146,6 +147,9 @@ class Database:
         _updateDict_(data, "expires", expires)
         _updateDict_(data, "priority", priority)
         _updateDict_(data, "status", status)
+        _updateDict_(data, "last_modified", time.time_ns())
+        _modifiedNow_(data)
+        print(json.dumps(self.data,indent=2))
         self._write_()
 
     def getItems(self, listId):

@@ -53,7 +53,7 @@
   * ✔ UUID data base
   * ✔ Show Items that expire soon
 * ☐ 0.2: local first
-  * ☐ make thread-safe
+  * ✔ Store last modified time
   * ☐ Synchronisation
     * ☐ Backend
     * ☐ Update frontend when sync changed something
