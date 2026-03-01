@@ -54,8 +54,8 @@
   * ✔ Show Items that expire soon
 * ☐ 0.2: local first
   * ✔ Store last modified time
-  * ☐ Synchronisation
-    * ☐ Backend
+  * ✔ Synchronisation
+    * ✔ Backend
     * ☐ Update frontend when sync changed something
   * ✔ Only return public DB fields
   * ☐ Error handling in JS/AJAX
