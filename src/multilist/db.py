@@ -4,6 +4,7 @@ import json
 import uuid
 import os.path
 import time
+from pydantic import BaseModel
 
 
 def _updateDict_(d, field, value):
@@ -22,8 +23,42 @@ def _updateHashDict_(hashDict, item):
             hashDict[ident] = item
             return
 
+
 def _modifiedNow_(data):
-    data['last_modified'] = time.time_ns()
+    """Set the last_modified of the give item to the current time"""
+    data["last_modified"] = time.time_ns()
+
+
+def _copyProps_(data, props):
+    """Return a new dictionary containing only the given keys"""
+    result = {}
+    for p in props:
+        if p in data:
+            result[p] = data[p]
+    return result
+
+
+class ListProps(BaseModel):
+    name: str | None = None
+    priority: int | None = None
+    warning_period: str | None = None
+
+
+class SyncListProps(ListProps):
+    last_modified: int = None
+
+
+class ItemProps(BaseModel):
+    subject: str | None = None
+    details: str | None = None
+    expires: str | None = None
+    priority: int | None = None
+    status: str | None = None
+
+
+class SyncItemProps(ItemProps):
+    last_modified: int = None
+
 
 class Database:
     """Abstracts all database operations into a class API"""
@@ -77,13 +112,16 @@ class Database:
     # ---------- List API ----------
     def addList(self):
         """Add an empty list"""
-        newList = {"name": "New List", "warning_period": "1w", "last_modified": time.time_ns()}
+        newList = {
+            "name": "New List",
+            "warning_period": "1w",
+            "last_modified": time.time_ns(),
+        }
         _updateHashDict_(self.data, newList)
         self._write_()
 
     def deleteList(self, listId):
         """Delete a list. Throws if list has items in it."""
-        # TODO: Make thread safe
         if ("items" in self.data[listId]) and len(self.data[listId]["items"]) != 0:
             # TODO: Define user exception
             raise Exception
@@ -97,12 +135,28 @@ class Database:
         warning_period: str = None,
     ):
         """Update the fields of a particular list. Only change those fields that are not None."""
-        # TODO: Make thread safe
         data = self.data[listId]
         _updateDict_(data, "name", name)
         _updateDict_(data, "priority", priority)
         _updateDict_(data, "warning_period", warning_period)
         _modifiedNow_(data)
+        self._write_()
+
+    def syncList(
+        self,
+        listId,
+        last_modified: int,
+        name: str = None,
+        priority: int = None,
+        warning_period: str = None,
+    ):
+        if not listId in self.data:
+            self.data[listId] = {}
+        data = self.data[listId]
+        _updateDict_(data, "name", name)
+        _updateDict_(data, "priority", priority)
+        _updateDict_(data, "warning_period", warning_period)
+        _updateDict_(data, "last_modified", last_modified)
         self._write_()
 
     def getLists(self):
@@ -111,13 +165,14 @@ class Database:
 
     def getListProperties(self, listId):
         """Return a dict of list properties."""
-        return self.data[listId]
+        return _copyProps_(
+            self.data[listId], ["name", "warning_period", "last_modified", "priority"]
+        )
 
     # ---------- item API ----------
     def addItem(self, listId):
         """Add an item to the given list."""
         newItem = {"subject": "New item", "last_modified": time.time_ns()}
-        # TODO: Make thread safe
         data = self.data[listId]
         if not "items" in data:
             data["items"] = {}
@@ -140,16 +195,38 @@ class Database:
         status: str = None,
     ):
         """Update the fields of a particular item.  Only change those fields that are not None."""
-        # TODO: Make thread safe
         data = self.data[listId]["items"][itemId]
         _updateDict_(data, "subject", subject)
         _updateDict_(data, "details", details)
         _updateDict_(data, "expires", expires)
         _updateDict_(data, "priority", priority)
         _updateDict_(data, "status", status)
-        _updateDict_(data, "last_modified", time.time_ns())
         _modifiedNow_(data)
-        print(json.dumps(self.data,indent=2))
+        self._write_()
+
+    def syncItem(
+        self,
+        listId,
+        itemId,
+        last_modified: int,
+        subject: str = None,
+        details: str = None,
+        expires: str = None,
+        priority: int = None,
+        status: str = None,
+    ):
+        """Update the fields of a particular item.  Only change those fields that are not None."""
+        if not "items" in self.data[listId]:
+            self.data[listId]["items"] = {}
+        if not itemId in self.data[listId]["items"]:
+            self.data[listId]["items"][itemId] = {}
+        data = self.data[listId]["items"][itemId]
+        _updateDict_(data, "subject", subject)
+        _updateDict_(data, "details", details)
+        _updateDict_(data, "expires", expires)
+        _updateDict_(data, "priority", priority)
+        _updateDict_(data, "status", status)
+        _updateDict_(data, "last_modified", last_modified)
         self._write_()
 
     def getItems(self, listId):
@@ -160,4 +237,7 @@ class Database:
 
     def getItemProperties(self, listId, itemId):
         """Return a dict of item properties for the given item in the given list."""
-        return self.data[listId]["items"][itemId]
+        return _copyProps_(
+            self.data[listId]["items"][itemId],
+            ["subject", "details", "expires", "priority", "status", "last_modified"],
+        )

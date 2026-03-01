@@ -4,13 +4,12 @@
 
 from multilist import db, sync
 
-database = db.Database( "test.json")
-synchronizer = sync.Synchronizer( "http://localhost:8000")
+database = db.Database("test.json")
+synchronizer = sync.Synchronizer("http://localhost:8000")
 
 if synchronizer.checkRemoteVersion():
-    print( "server found")
+    print("server found")
 else:
-    print( "server not found")
+    print("server not found")
 
-synchronizer.synchronize( database)
-
+synchronizer.synchronize(database)

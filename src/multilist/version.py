@@ -1,4 +1,3 @@
-
 # Name to return/expect for the API
 name = "multilist"
 

@@ -57,7 +57,7 @@
   * ☐ Synchronisation
     * ☐ Backend
     * ☐ Update frontend when sync changed something
-  * ☐ Only return public DB fields
+  * ✔ Only return public DB fields
   * ☐ Error handling in JS/AJAX
 * ☐ 0.3: fancy
   * ☐ Frontend design

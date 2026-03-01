@@ -1,27 +1,33 @@
 #! /usr/bin/python3
 
-from multilist import db
+from multilist import db, sync
 import multilist.version as mlv
 from fastapi import FastAPI
 from fastapi.responses import Response
-from pydantic import BaseModel
 from pydantic_settings import BaseSettings
 
 import asyncio
 from contextlib import asynccontextmanager
 
-class AppSettings( BaseSettings):
-    ML_DB_JSON : str = "multilist.json"
-    ML_SYNC_URL : str = "localhost:8001"
+
+class AppSettings(BaseSettings):
+    ML_DB_JSON: str = "multilist.json"
+    ML_SYNC_URL: str = "http://localhost:8001"
+
 
 app_settings = AppSettings()
 print(app_settings.ML_DB_JSON)
+database = db.Database(app_settings.ML_DB_JSON)
 
 async def backgroundSync():
     """Function to run in the background. It will periodically connect to other servers and synchronize the databases."""
+    synchronizer = sync.Synchronizer(app_settings.ML_SYNC_URL)
     while True:
-        print("ping")
-        await asyncio.sleep(1)
+        # Try to sync with the server once a minute.
+        while not synchronizer.checkRemoteVersion():
+            await asyncio.sleep(60)
+        synchronizer.synchronize(database)
+        await asyncio.sleep(30*60)
 
 
 @asynccontextmanager
@@ -30,7 +36,6 @@ async def lifespan(app: FastAPI):
     yield
 
 
-database = db.Database(app_settings.ML_DB_JSON)
 
 app = FastAPI(lifespan=lifespan)
 
@@ -52,9 +57,10 @@ async def root():
 async def jquery():
     return serveFile("jquery/jquery-4.0.0.min.js", "application/javascript")
 
+
 @app.get("/version")
 async def version():
-    return { "name": mlv.name, "version": mlv.version }
+    return {"name": mlv.name, "version": mlv.version}
 
 
 @app.get("/lists")
@@ -68,16 +74,23 @@ async def addList():
     return {}
 
 
-class ListProps(BaseModel):
-    name: str | None = None
-    priority: int | None = None
-    warning_period: str | None = None
-
-
 @app.put("/list/{listId}")
-async def updateList(listId: str, listProps: ListProps):
+async def updateList(listId: str, listProps: db.ListProps):
     database.updateList(
         listId, listProps.name, listProps.priority, listProps.warning_period
+    )
+    return {}
+
+
+@app.post("/syncList/{listId}")
+async def syncList(listId: str, listProps: db.SyncListProps):
+    print(listProps)
+    database.syncList(
+        listId,
+        listProps.last_modified,
+        listProps.name,
+        listProps.priority,
+        listProps.warning_period,
     )
     return {}
 
@@ -91,19 +104,9 @@ async def deleteList(listId: str):
     return True
 
 
-def optField(out, d, k):
-    if k in d:
-        out[k] = d[k]
-
-
 @app.get("/list/{listId}")
 async def listProps(listId: str):
-    lp = database.getListProperties(listId)
-    res = {}
-    optField(res, lp, "name")
-    optField(res, lp, "priority")
-    optField(res, lp, "warning_period")
-    return res
+    return database.getListProperties(listId)
 
 
 @app.get("/items/{listId}")
@@ -126,16 +129,8 @@ async def addItem(listId: str):
     database.addItem(listId)
 
 
-class ItemProps(BaseModel):
-    subject: str | None = None
-    details: str | None = None
-    expires: str | None = None
-    priority: int | None = None
-    status: str | None = None
-
-
 @app.put("/item/{listId}/{itemId}")
-async def updateItem(listId: str, itemId: str, itemProps: ItemProps):
+async def updateItem(listId: str, itemId: str, itemProps: db.ItemProps):
     database.updateItem(
         listId,
         itemId,
@@ -146,3 +141,28 @@ async def updateItem(listId: str, itemId: str, itemProps: ItemProps):
         itemProps.status,
     )
     return {}
+
+
+@app.post("/syncItem/{listId}/{itemId}")
+async def syncItem(listId: str, itemId: str, itemProps: db.SyncItemProps):
+    database.syncItem(
+        listId,
+        itemId,
+        itemProps.last_modified,
+        itemProps.subject,
+        itemProps.details,
+        itemProps.expires,
+        itemProps.priority,
+        itemProps.status,
+    )
+    return {}
+
+
+#   @app.middleware("http")
+#   async def middleware(request: Request, call_next):
+#       try:
+#           print(await request.json())
+#       except:
+#           print( "no body")
+#       response = await call_next(request)
+#       return response
