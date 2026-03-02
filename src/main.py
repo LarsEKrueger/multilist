@@ -25,6 +25,9 @@ database = db.Database(app_settings.ML_DB_JSON)
 
 async def backgroundSync():
     """Function to run in the background. It will periodically connect to other servers and synchronize the databases."""
+
+    # Give the app time to start
+    await asyncio.sleep(20)
     synchronizer = sync.Synchronizer(app_settings.ML_SYNC_URL)
     while True:
         # Try to sync with the server once a minute.
