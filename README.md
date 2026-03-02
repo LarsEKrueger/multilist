@@ -44,16 +44,19 @@
 Set the environment variables (if you want to deviate from the following default values):
 
     ML_DB_JSON=multilist.json
-    ML_SYNC_URL=http://myothercomputer:8000
+    ML_SYNC_URL=
+
+`ML_SYNC_URL` should have a full URL like `http://myothercomputer:8000`
 
 ### Start the server
 
 * Change the directory/folder to where you cloned the repo to.
 * Run
   * in Linux: `. venv/bin/activate`
-  * in Windows: `venv\Scripts\activate.bat`
+  * in Windows: `call venv\Scripts\activate.bat`
 * Run `fastapi run src/main.py`
   * Append `--port <number>` if you want to deviate from the default 8000
+  * Don't start as `fastapi dev`. This will prohibit connections from other computers.
 
 ### Windows Autostart
 

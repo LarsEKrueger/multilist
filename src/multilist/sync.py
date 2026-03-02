@@ -19,8 +19,11 @@ class Synchronizer:
     def checkRemoteVersion(self):
         """Check if the server at the remote URL replies with the correct name and version. Return true if it worked."""
         result = False
+        if self.remoteUrl == "":
+            return False
         try:
-            resp = requests.get(f"{self.remoteUrl}/version").json()
+            print( f"Waiting for {self.remoteUrl} to come online")
+            resp = requests.get(f"{self.remoteUrl}/version", timeout=1.0).json()
             if (resp["name"] == mlv.name) and (resp["version"] == mlv.version):
                 result = True
         except:

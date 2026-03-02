@@ -12,7 +12,7 @@ from contextlib import asynccontextmanager
 
 class AppSettings(BaseSettings):
     ML_DB_JSON: str = "multilist.json"
-    ML_SYNC_URL: str = "http://localhost:8001"
+    ML_SYNC_URL: str = ""
 
 
 app_settings = AppSettings()
@@ -32,7 +32,6 @@ async def backgroundSync():
     while True:
         # Try to sync with the server once a minute.
         while not synchronizer.checkRemoteVersion():
-            print( f"Waiting for {app_settings.ML_SYNC_URL} to come online")
             await asyncio.sleep(60)
         print( "Starting sync")
         synchronizer.synchronize(database)
