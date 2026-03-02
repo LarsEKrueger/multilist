@@ -1,5 +1,18 @@
 # Manage multiple (TODO) lists on multiple computers with a local-first attitude
 
+## This is an experiment! Don't use productively.
+
+I created this program to learn about FastAPI and to solve a long-standing
+problem.
+
+As I frequently switch between computers, some of which are outside my home
+WLAN for a hours or days, I can't use a TODO list app that requires permanent
+online connection. Therefore, I created this decentralized app that can
+synchronize the lists between multiple instances of itself.
+
+This app is most likely buggy, in parts very slow, and definitely has an ugly
+frontend. So, you have been warned: Use it at your own risk.
+
 ## Requirements
 
 * Manage multiple lists
@@ -96,11 +109,13 @@ The following steps are required to execute the server without a command window.
   * ✔ sort by priority
   * ✔ UUID data base
   * ✔ Show Items that expire soon
-* ☐ 0.1: local first
+* ✔ 0.1: local first
   * ✔ Store last modified time
   * ✔ Synchronisation
   * ✔ Only return public DB fields
 * ☐ 0.2: fancy
+  * ☐ Correctly synchronize deleted items
+  * ☐ Sync speedup
   * ☐ Frontend design
   * ☐ jquery UI
   * ☐ Datepicker
