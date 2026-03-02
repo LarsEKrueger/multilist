@@ -16,8 +16,12 @@ class AppSettings(BaseSettings):
 
 
 app_settings = AppSettings()
-print(app_settings.ML_DB_JSON)
+
+print( f"ML_DB_JSON={app_settings.ML_DB_JSON}")
+print( f"ML_SYNC_URL={app_settings.ML_SYNC_URL}")
+
 database = db.Database(app_settings.ML_DB_JSON)
+
 
 async def backgroundSync():
     """Function to run in the background. It will periodically connect to other servers and synchronize the databases."""
@@ -25,8 +29,11 @@ async def backgroundSync():
     while True:
         # Try to sync with the server once a minute.
         while not synchronizer.checkRemoteVersion():
+            print( f"Waiting for {app_settings.ML_SYNC_URL} to come online")
             await asyncio.sleep(60)
+        print( "Starting sync")
         synchronizer.synchronize(database)
+        print( "Sync done. Waiting 30 minutes.")
         await asyncio.sleep(30*60)
 
 
