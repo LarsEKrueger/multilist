@@ -115,7 +115,7 @@ The following steps are required to execute the server without a command window.
   * ✔ Only return public DB fields
 * ☐ 0.2: fancy
   * ☐ Correctly synchronize deleted items
-  * ☐ Sync speedup
+  * ✔ Sync speedup
   * ☐ Frontend design
   * ☐ jquery UI
   * ☐ Datepicker
