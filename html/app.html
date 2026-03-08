@@ -4,6 +4,25 @@
     <meta charset="utf-8">
     <title>MultiList App</title>
     <style>
+      table {
+        white-space: nowrap;
+        width: 100%;
+      }
+
+      td {
+        border: 1px solid black;
+      }
+
+      td {
+        max-width: 0;
+        overflow: hidden;
+      }
+
+      td.fit {
+        width: 0;
+        min-width: fit-content;
+      }
+
       .button {
          background: #dddddd;
          border-left-color: #eeeeee;
@@ -34,7 +53,6 @@
         content:"\270f";
       }
       .delBtn {
-        position:absolute;
         right: 10px;
       }
       .delBtn::after {
@@ -44,6 +62,26 @@
       }
       .addBtn::after {
         content:"\2795";
+      }
+
+      .field {
+         background: #eeeeee;
+         border-color: #eeeeee;
+         border-width: 3px;
+         border-style:solid;
+         margin: 5px;
+      }
+      .field:hover {
+         background: #ffffff;
+         border-left-color: #cccccc;
+         border-top-color: #cccccc;
+         border-right-color: #eeeeee;
+         border-bottom-color: #eeeeee;
+      }
+      .inputField {
+        min-width:3em;
+        width:100%;
+        margin: 5px;
       }
 
       .lists {
@@ -99,6 +137,9 @@
          overflow:hidden;
          display:inline-block;
       }
+      .hidden {
+        display:none;
+      }
     </style>
   </head>
   <body>
@@ -143,10 +184,28 @@
             if( callback !== undefined) {
               callback( text);
             }
-            $.ajax({ url: "/" + suffix, type: "PUT", contentType:"application/json", data:JSON.stringify(data)}).done(function(json) {
-            });
+            $.ajax({ url: "/" + suffix, type: "PUT", contentType:"application/json", data:JSON.stringify(data)}).done(function(json) { });
           }
         })
+      }
+      <!-- Function to make display items editable -->
+      function linkInput( suffix, varName, fieldId, inputId, callback) {
+        $( '#' + fieldId).click( function() {
+          $( '#' + fieldId).addClass("hidden");
+          $( '#' + inputId).removeClass("hidden").on( "change", function() {
+            var text=$( '#' + inputId).addClass("hidden").val();
+            $( '#' + fieldId).removeClass("hidden").text(text);
+            data = {};
+            data[varName]=text;
+            if( callback !== undefined) {
+              callback( text);
+            }
+            $.ajax({ url: "/" + suffix, type: "PUT", contentType:"application/json", data:JSON.stringify(data)}).done(function(json) { });
+          }).on( "blur", function() {
+            var text=$( '#' + fieldId).removeClass("hidden").text();
+            $( '#' + inputId).addClass("hidden").val(text);
+          });
+        });
       }
       <!-- Refresh all lists -->
       function refreshLists( ) {
@@ -155,33 +214,51 @@
           $.each( json, function(index,listId) {
             <!-- Create the list as a DOM list item -->
             $( "<li class='listEntry' id='" + listId + "'>" +
-                  "<div class='listHeader' id='" + listId + "'>" +
-                    "<span class='button delBtn' id='del-" + listId + "'></span>" +
-                    "<span class='listName' id='ln-" + listId + "'></span>" +
-                    "<span class='button editBtn' id='eln-" + listId + "'></span>" +
-                    "<span class='period' id='wp-" + listId + "'></span>" +
-                    "<span class='button editBtn' id='ewp-" + listId + "'></span>" +
-                    "<span class='period' id='prio-" + listId + "'></span>" +
-                    "<span class='button editBtn' id='eprio-" + listId + "'></span>" +
-                    "<span class='button addBtn' id='ai-" + listId + "'></span>" +
-                  "</div>" +
-                  "<ul class='items' id='it-" + listId + "'></ul>" +
+                  "<table>" +
+                    "<tr class='listHeader' id='" + listId + "'>" +
+                      "<td>"+
+                        "<span class='field' id='ln-" + listId + "'></span>" +
+                        "<input class='hidden inputField' id='eln-" + listId + "'>" +
+                      "</td>"+
+                      "<td class='fit'>"+
+                        "<span class='label'>Warn </span>" +
+                        "<span class='field' id='wp-" + listId + "'></span>" +
+                        "<input class='hidden inputField' id='ewp-" + listId + "'>" +
+                        "<span class='label'> before</span>" +
+                      "</td>"+
+                      "<td class='fit'>"+
+                        "<span class='label'>Order </span>" +
+                        "<span class='field' id='prio-" + listId + "'></span>" +
+                        "<input class='hidden inputField' id='eprio-" + listId + "'>" +
+                      "</td>"+
+                      "<td class='fit'>"+
+                        "<span class='button addBtn' id='ai-" + listId + "'></span>" +
+                        "<span class='button delBtn' id='del-" + listId + "'></span>" +
+                      "</td>"+
+                    "</tr>" +
+                    "<tr><td colspan=4>" +
+                      "<ul class='items' id='it-" + listId + "'></ul>" +
+                    "</td></tr>" +
+                  "</table>" +
                "</li>"
             ).appendTo( "#lists");
             var warning_period = '';
             <!-- Populate the properties. Do it synchronously to simplify getting the warning period.-->
             $.ajax({ url: '/list/' + listId, type: "GET", dataType:"json", async:false}).done(function(json) {
               $( '#ln-' + listId).text( json['name']);
+              $( '#eln-' + listId).val( json['name']);
               warning_period = json['warning_period'];
               $( '#wp-' + listId).text( warning_period);
+              $( '#ewp-' + listId).val( warning_period);
               let prio=json['priority'];
               $( '#prio-' + listId).text( prio);
+              $( '#eprio-' + listId).val( prio);
               setOrderFromPrio( listId, prio);
             });
             <!-- Make properties editable -->
-            linkEditBtn( 'list/' + listId, 'name', 'ln-' + listId, 'eln-' + listId);
-            linkEditBtn( 'list/' + listId, 'priority', 'prio-' + listId, 'eprio-' + listId, function(value) {setOrderFromPrio(listId,value);});
-            linkEditBtn( 'list/' + listId, 'warning_period', 'wp-' + listId, 'ewp-' + listId);
+            linkInput( 'list/' + listId, 'name', 'ln-' + listId, 'eln-' + listId);
+            linkInput( 'list/' + listId, 'priority', 'prio-' + listId, 'eprio-' + listId, function(value) {setOrderFromPrio(listId,value);});
+            linkInput( 'list/' + listId, 'warning_period', 'wp-' + listId, 'ewp-' + listId);
             <!-- Delete list button -->
             $( '#del-' + listId).click(function() {
               if( confirm( "Delete list?")) {
