@@ -281,34 +281,55 @@
                 let uId=listId+'-'+itemId;
                 <!-- Create the item as a dom list item -->
                 $( "<li class='itemEntry' id='" + uId + "'>"+
-                    "<div class='itemHeader' id='" + uId + "'>" +
-                      "<span class='button delBtn' id='del-" + uId + "'></span>" +
-                      "<span class='itemSubject' id='is-" + uId + "'></span>" +
-                      "<span class='button editBtn' id='eis-" + uId + "'></span>" +
-                      "<span class='date' id='exp-" + uId + "'></span>" +
-                      "<span class='button editBtn' id='eexp-" + uId + "'></span>" +
-                      "<span class='priority' id='prio-" + uId + "'></span>" +
-                      "<span class='button editBtn' id='eprio-" + uId + "'></span>" +
-                      "<span class='status' id='status-" + uId + "'></span>" +
-                      "<span class='button editBtn' id='estatus-" + uId + "'></span>" +
-                    "</div>" +
-                    "<div class='itemBody' id=ib-'" + uId + "'>" +
-                      "<span class='itemDesc' id='desc-" + uId + "'></span>" +
-                      "<span class='button editBtn' id='edesc-" + uId + "'></span>" +
-                    "</div>" +
+                    "<table>" +
+                      "<tr class='itemHeader' id='" + uId + "'>" +
+                        "<td>" +
+                          "<span class='itemSubject' id='is-" + uId + "'></span>" +
+                          "<input class='hidden inputField' id='eis-" + uId + "'>" +
+                        "</td>" +
+                        "<td class='fit'>" +
+                          "<span class='label'>Expires </span>" +
+                          "<span class='date' id='exp-" + uId + "'></span>" +
+                          "<input class='hidden inputField' id='eexp-" + uId + "'>" +
+                        "</td>" +
+                        "<td class='fit'>" +
+                          "<span class='label'>Priority </span>" +
+                          "<span class='priority' id='prio-" + uId + "'></span>" +
+                          "<input class='hidden inputField' id='eprio-" + uId + "'>" +
+                        "</td>" +
+                        "<td class='fit'>" +
+                          "<span class='label'>Status </span>" +
+                          "<span class='status' id='status-" + uId + "'></span>" +
+                          "<input class='hidden inputField' id='estatus-" + uId + "'>" +
+                        "</td>" +
+                        "<td class='fit'>" +
+                          "<span class='button delBtn' id='del-" + uId + "'></span>" +
+                        "</td>" +
+                      "</tr>" +
+                      "<tr><td colspan=5>" +
+                        "<span class='itemDesc' id='desc-" + uId + "'></span>" +
+                        "<input class='hidden inputField' id='edesc-" + uId + "'>" +
+                      "</tr>" +
+                    "</table>" +
                    "</li>").appendTo( "#it-" + listId);
                 <!-- Populate the item -->
                 $.ajax({ url: "/item/"+ listId+ "/" + itemId, type: "GET", dataType:"json"}).done(function(itemProp) {
                   console.log(itemProp);
                   const subjStr = itemProp['subject'];
                   $( '#is-' + uId).text( subjStr);
+                  $( '#eis-' + uId).val( subjStr);
                   const expStr=itemProp['expires'];
                   $( '#exp-' + uId).text( expStr);
-                  $( '#status-' + uId).text( itemProp['status']);
+                  $( '#eexp-' + uId).val( expStr);
+                  const statStr=itemProp['status'];
+                  $( '#status-' + uId).text( statStr);
+                  $( '#estatus-' + uId).val( statStr);
                   const descStr = itemProp['details'];
                   $( '#desc-' + uId).text( descStr);
+                  $( '#edesc-' + uId).val( descStr);
                   var prio=itemProp['priority'];
                   $( '#prio-' + uId).text( prio);
+                  $( '#eprio-' + uId).val( prio);
                   setOrderFromPrio( uId, prio);
                   <!-- If now is within the warning period, add a simple item to the warning list. -->
                   const expires = new Date(expStr).valueOf();
@@ -324,11 +345,11 @@
                   }
                 });
                 <!-- Link the edit buttons -->
-                linkEditBtn( 'item/' + listId + '/' + itemId, 'subject', 'is-' + uId, 'eis-' + uId);
-                linkEditBtn( 'item/' + listId + '/' + itemId, 'expires', 'exp-' + uId, 'eexp-' + uId);
-                linkEditBtn( 'item/' + listId + '/' + itemId, 'priority', 'prio-' + uId, 'eprio-' + uId, function(value) {setOrderFromPrio(uId,value);});
-                linkEditBtn( 'item/' + listId + '/' + itemId, 'status', 'status-' + uId, 'estatus-' + uId);
-                linkEditBtn( 'item/' + listId + '/' + itemId, 'details', 'desc-' + uId, 'edesc-' + uId);
+                linkInput( 'item/' + listId + '/' + itemId, 'subject', 'is-' + uId, 'eis-' + uId);
+                linkInput( 'item/' + listId + '/' + itemId, 'expires', 'exp-' + uId, 'eexp-' + uId);
+                linkInput( 'item/' + listId + '/' + itemId, 'priority', 'prio-' + uId, 'eprio-' + uId, function(value) {setOrderFromPrio(uId,value);});
+                linkInput( 'item/' + listId + '/' + itemId, 'status', 'status-' + uId, 'estatus-' + uId);
+                linkInput( 'item/' + listId + '/' + itemId, 'details', 'desc-' + uId, 'edesc-' + uId);
                 <!-- Delete item button -->
                 $( '#del-' + uId).click(function() {
                   if( confirm( "Delete item?")) {
