@@ -8,17 +8,18 @@
         white-space: nowrap;
         width: 100%;
       }
-
       td {
         max-width: 0;
         vertical-align: middle;
       }
-
       td.fit {
         width: 0;
         min-width: fit-content;
       }
-
+      td.rightSep {
+        border-right-width:1px;
+        border-right-style:solid;
+      }
       .button {
          background: #dddddd;
          border-left-color: #eeeeee;
@@ -215,13 +216,13 @@
                         "<span class='field' id='ln-" + listId + "'></span>" +
                         "<input class='hidden inputField' id='eln-" + listId + "'>" +
                       "</td>"+
-                      "<td class='fit'>"+
+                      "<td class='fit rightSep'>"+
                         "<span class='label'>Warn&nbsp;</span>" +
                         "<span class='field' id='wp-" + listId + "'></span>" +
                         "<input class='hidden inputField' id='ewp-" + listId + "'>" +
                         "<span class='label'>&nbsp;before</span>" +
                       "</td>"+
-                      "<td class='fit'>"+
+                      "<td class='fit rightSep'>"+
                         "<span class='label'>Order&nbsp;</span>" +
                         "<span class='field' id='prio-" + listId + "'></span>" +
                         "<input class='hidden inputField' id='eprio-" + listId + "'>" +
@@ -282,17 +283,17 @@
                           "<span class='field' id='is-" + uId + "'></span>" +
                           "<input class='hidden inputField' id='eis-" + uId + "'>" +
                         "</td>" +
-                        "<td class='fit'>" +
+                        "<td class='fit rightSep'>" +
                           "<span class='label'>Expires&nbsp;</span>" +
                           "<span class='field' id='exp-" + uId + "'></span>" +
                           "<input class='hidden inputField' id='eexp-" + uId + "'>" +
                         "</td>" +
-                        "<td class='fit'>" +
+                        "<td class='fit rightSep'>" +
                           "<span class='label'>Priority&nbsp;</span>" +
                           "<span class='field' id='prio-" + uId + "'></span>" +
                           "<input class='hidden inputField' id='eprio-" + uId + "'>" +
                         "</td>" +
-                        "<td class='fit'>" +
+                        "<td class='fit rightSep'>" +
                           "<span class='label'>Status&nbsp;</span>" +
                           "<span class='field' id='status-" + uId + "'></span>" +
                           "<input class='hidden inputField' id='estatus-" + uId + "'>" +
