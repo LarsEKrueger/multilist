@@ -4,7 +4,7 @@
 
 from multilist import db, sync
 
-database = db.Database("test.json")
+database = db.Database("test.json", prettySafe=True)
 synchronizer = sync.Synchronizer("http://localhost:8000")
 
 if synchronizer.checkRemoteVersion():

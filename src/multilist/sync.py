@@ -22,7 +22,7 @@ class Synchronizer:
         if self.remoteUrl == "":
             return False
         try:
-            print( f"Waiting for {self.remoteUrl} to come online")
+            print(f"Waiting for {self.remoteUrl} to come online")
             resp = requests.get(f"{self.remoteUrl}/version", timeout=1.0).json()
             if (resp["name"] == mlv.name) and (resp["version"] == mlv.version):
                 result = True
@@ -44,12 +44,19 @@ class Synchronizer:
 
             # Get lists
             remoteLists = session.get(f"{self.remoteUrl}/lists").json()
+            remoteDeleted = session.get(f"{self.remoteUrl}/deleted").json()
             localLists = database.getLists()
+            localDeleted = database.getDeleted()
 
             # Ensure local has what remote has
             for localId in localLists:
-                sendToRemote = False
+                # If the local list has been deleted on the remote after the last local change, we delete it locally.
                 localData = database.getListProperties(localId)
+                if localId in remoteDeleted:
+                    if remoteDeleted[localId] > localData["last_modified"]:
+                        database.deleteListForce(localId, remoteDeleted[localId])
+                        continue
+                sendToRemote = False
                 if localId in remoteLists:
                     remoteData = session.get(f"{self.remoteUrl}/list/{localId}").json()
                     remoteProps = db.SyncListProps.model_validate(remoteData)
@@ -73,14 +80,23 @@ class Synchronizer:
                     sendToRemote = True
                 if sendToRemote:
                     resp = session.post(
-                        f"{self.remoteUrl}/syncList/{localId}", data=json.dumps(localData)
+                        f"{self.remoteUrl}/syncList/{localId}",
+                        data=json.dumps(localData),
                     )
 
             # Ensure that remote has what local has
             for remoteId in remoteLists:
-                sendToLocal = False
                 remoteData = session.get(f"{self.remoteUrl}/list/{remoteId}").json()
                 remoteProps = db.SyncListProps.model_validate(remoteData)
+                # If the remote list has been deleted on local after the last remote change, we delete it on the remote.
+                if remoteId in localDeleted:
+                    if localDeleted[remoteId] > remoteProps.last_modified:
+                        resp = session.delete(
+                            f"{self.remoteUrl}/syncList/{remoteId}",
+                            params={"timestamp": localDeleted[remoteId]},
+                        )
+                        continue
+                sendToLocal = False
                 if remoteId in localLists:
                     # Remote found, compare time
                     localData = database.getListProperties(remoteId)
@@ -115,8 +131,17 @@ class Synchronizer:
                 remoteItems = session.get(f"{self.remoteUrl}/items/{listId}").json()
                 # Ensure local has what remote has
                 for localId in localItems:
-                    sendToRemote = False
                     localData = database.getItemProperties(listId, localId)
+
+                    # If the local item has been deleted on the remote after the last local change, we delete it locally.
+                    if localId in remoteDeleted:
+                        if remoteDeleted[localId] > localData["last_modified"]:
+                            database.deleteItemForce(
+                                listId, localId, remoteDeleted[localId]
+                            )
+                            continue
+
+                    sendToRemote = False
                     if localId in remoteItems:
                         # local and remote have it, compare timestamps
                         remoteData = session.get(
@@ -156,6 +181,14 @@ class Synchronizer:
                         f"{self.remoteUrl}/item/{listId}/{remoteId}"
                     ).json()
                     remoteProps = db.SyncItemProps.model_validate(remoteData)
+                    # If the remote item has been deleted on local after the last remote change, we delete it on the remote.
+                    if remoteId in localDeleted:
+                        if localDeleted[remoteId] > remoteProps.last_modified:
+                            session.delete(
+                                f"{self.remoteUrl}/syncItem/{listId}/{remoteId}",
+                                params={"timestamp": localDeleted[remoteId]},
+                            )
+                            continue
                     if remoteId in localItems:
                         localData = database.getItemProperties(listId, remoteId)
                         if (remoteProps.last_modified is not None) and (

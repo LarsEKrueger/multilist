@@ -63,7 +63,7 @@ class SyncItemProps(ItemProps):
 class Database:
     """Abstracts all database operations into a class API"""
 
-    def __init__(self, path):
+    def __init__(self, path, prettySafe=False):
         """Construct the DB object
 
         path: Folder where the DB shall be stored. Folder must exist.
@@ -94,6 +94,9 @@ class Database:
         ]
         """
         self.path = path
+        self.writeIndent = None
+        if prettySafe:
+            self.writeIndent = 2
 
         self.data = {}
         # Load the DB if it exists or create an empty one
@@ -107,7 +110,26 @@ class Database:
     def _write_(self):
         """Internal function to write the DB to disk."""
         with open(self.path, "wt") as f:
-            json.dump(self.data, f)
+            json.dump(self.data, f, indent=self.writeIndent)
+
+    def access(self, key):
+        """Ensure that self.data[key] exists"""
+        if not key in self.data:
+            self.data[key] = {}
+        return self.data[key]
+
+    def lists(self):
+        """Provide access to lists"""
+        return self.access("lists")
+
+    def deleted(self):
+        """Provide access to deleted lists and items"""
+        return self.access("deleted")
+
+    # ---------- General API ----------
+    def getDeleted(self):
+        """Return all deleted entries as a map of uuid to timestamp"""
+        return self.deleted()
 
     # ---------- List API ----------
     def addList(self):
@@ -117,15 +139,23 @@ class Database:
             "warning_period": "1w",
             "last_modified": time.time_ns(),
         }
-        _updateHashDict_(self.data, newList)
+        _updateHashDict_(self.lists(), newList)
+        self._write_()
+
+    def deleteListForce(self, listId, timestamp):
+        """Delete a list even if it has items in it."""
+        del self.lists()[listId]
+        _updateDict_(self.deleted(), listId, timestamp)
         self._write_()
 
     def deleteList(self, listId):
         """Delete a list. Throws if list has items in it."""
-        if ("items" in self.data[listId]) and len(self.data[listId]["items"]) != 0:
+        if ("items" in self.lists()[listId]) and len(
+            self.lists()[listId]["items"]
+        ) != 0:
             # TODO: Define user exception
             raise Exception
-        del self.data[listId]
+        self.deleteListForce(listId, time.time_ns())
 
     def updateList(
         self,
@@ -135,7 +165,7 @@ class Database:
         warning_period: str = None,
     ):
         """Update the fields of a particular list. Only change those fields that are not None."""
-        data = self.data[listId]
+        data = self.lists()[listId]
         _updateDict_(data, "name", name)
         _updateDict_(data, "priority", priority)
         _updateDict_(data, "warning_period", warning_period)
@@ -150,39 +180,48 @@ class Database:
         priority: int = None,
         warning_period: str = None,
     ):
-        if not listId in self.data:
-            self.data[listId] = {}
-        data = self.data[listId]
+        if not listId in self.lists():
+            self.lists()[listId] = {}
+        data = self.lists()[listId]
         _updateDict_(data, "name", name)
         _updateDict_(data, "priority", priority)
         _updateDict_(data, "warning_period", warning_period)
         _updateDict_(data, "last_modified", last_modified)
+        # If the listId has been brought back to life, remove it from the deleted list
+        if listId in self.deleted():
+            del self.deleted()[listId]
         self._write_()
 
     def getLists(self):
         """Returns an array of list ids."""
-        return [k for k in self.data.keys()]
+        return [k for k in self.lists().keys()]
 
     def getListProperties(self, listId):
         """Return a dict of list properties."""
         return _copyProps_(
-            self.data[listId], ["name", "warning_period", "last_modified", "priority"]
+            self.lists()[listId],
+            ["name", "warning_period", "last_modified", "priority"],
         )
 
     # ---------- item API ----------
     def addItem(self, listId):
         """Add an item to the given list."""
         newItem = {"subject": "New item", "last_modified": time.time_ns()}
-        data = self.data[listId]
+        data = self.lists()[listId]
         if not "items" in data:
             data["items"] = {}
         _updateHashDict_(data["items"], newItem)
         self._write_()
 
+    def deleteItemForce(self, listId, itemId, timestamp):
+        """Delete an item and mark it deleted with the given timestamp"""
+        del self.lists()[listId]["items"][itemId]
+        _updateDict_(self.deleted(), itemId, timestamp)
+        self._write_()
+
     def deleteItem(self, listId, itemId):
         """Delete an item from the given list."""
-        del self.data[listId]["items"][itemId]
-        self._write_()
+        self.deleteItemForce(listId, itemId, time.time_ns())
 
     def updateItem(
         self,
@@ -195,7 +234,7 @@ class Database:
         status: str = None,
     ):
         """Update the fields of a particular item.  Only change those fields that are not None."""
-        data = self.data[listId]["items"][itemId]
+        data = self.lists()[listId]["items"][itemId]
         _updateDict_(data, "subject", subject)
         _updateDict_(data, "details", details)
         _updateDict_(data, "expires", expires)
@@ -216,28 +255,32 @@ class Database:
         status: str = None,
     ):
         """Update the fields of a particular item.  Only change those fields that are not None."""
-        if not "items" in self.data[listId]:
-            self.data[listId]["items"] = {}
-        if not itemId in self.data[listId]["items"]:
-            self.data[listId]["items"][itemId] = {}
-        data = self.data[listId]["items"][itemId]
+        theList = self.lists()[listId]
+        if not "items" in theList:
+            theList["items"] = {}
+        if not itemId in theList["items"]:
+            theList["items"][itemId] = {}
+        data = theList["items"][itemId]
         _updateDict_(data, "subject", subject)
         _updateDict_(data, "details", details)
         _updateDict_(data, "expires", expires)
         _updateDict_(data, "priority", priority)
         _updateDict_(data, "status", status)
         _updateDict_(data, "last_modified", last_modified)
+        # If the itemId has been brought back to life, remove it from the deleted list
+        if itemId in self.deleted():
+            del self.deleted()[itemId]
         self._write_()
 
     def getItems(self, listId):
         """Return a list of itemIds in a particular list."""
-        if not "items" in self.data[listId]:
+        if not "items" in self.lists()[listId]:
             return []
-        return [k for k in self.data[listId]["items"].keys()]
+        return [k for k in self.lists()[listId]["items"].keys()]
 
     def getItemProperties(self, listId, itemId):
         """Return a dict of item properties for the given item in the given list."""
         return _copyProps_(
-            self.data[listId]["items"][itemId],
+            self.lists()[listId]["items"][itemId],
             ["subject", "details", "expires", "priority", "status", "last_modified"],
         )

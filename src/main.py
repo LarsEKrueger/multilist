@@ -17,8 +17,8 @@ class AppSettings(BaseSettings):
 
 app_settings = AppSettings()
 
-print( f"ML_DB_JSON={app_settings.ML_DB_JSON}")
-print( f"ML_SYNC_URL={app_settings.ML_SYNC_URL}")
+print(f"ML_DB_JSON={app_settings.ML_DB_JSON}")
+print(f"ML_SYNC_URL={app_settings.ML_SYNC_URL}")
 
 database = db.Database(app_settings.ML_DB_JSON)
 
@@ -27,23 +27,22 @@ async def backgroundSync():
     """Function to run in the background. It will periodically connect to other servers and synchronize the databases."""
 
     # Give the app time to start
-    await asyncio.sleep(20)
+    await asyncio.sleep(10)
     synchronizer = sync.Synchronizer(app_settings.ML_SYNC_URL)
     while True:
         # Try to sync with the server once a minute.
         while not synchronizer.checkRemoteVersion():
             await asyncio.sleep(60)
-        print( "Starting sync")
+        print("Starting sync")
         synchronizer.synchronize(database)
-        print( "Sync done. Waiting 30 minutes.")
-        await asyncio.sleep(30*60)
+        print("Sync done. Waiting 30 minutes.")
+        await asyncio.sleep(30 * 60)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     task = asyncio.create_task(backgroundSync())
     yield
-
 
 
 app = FastAPI(lifespan=lifespan)
@@ -72,6 +71,11 @@ async def version():
     return {"name": mlv.name, "version": mlv.version}
 
 
+@app.get("/deleted")
+async def getDeleted():
+    return database.getDeleted()
+
+
 @app.get("/lists")
 async def getLists():
     return database.getLists()
@@ -93,7 +97,6 @@ async def updateList(listId: str, listProps: db.ListProps):
 
 @app.post("/syncList/{listId}")
 async def syncList(listId: str, listProps: db.SyncListProps):
-    print(listProps)
     database.syncList(
         listId,
         listProps.last_modified,
@@ -102,6 +105,11 @@ async def syncList(listId: str, listProps: db.SyncListProps):
         listProps.warning_period,
     )
     return {}
+
+
+@app.delete("/syncList/{listId}")
+async def syncDeleteList(listId: str, timestamp: int):
+    database.deleteListForce(listId, timestamp)
 
 
 @app.delete("/list/{listId}")
