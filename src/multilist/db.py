@@ -274,6 +274,8 @@ class Database:
 
     def getItems(self, listId):
         """Return a list of itemIds in a particular list."""
+        if not listId in self.lists():
+            return []
         if not "items" in self.lists()[listId]:
             return []
         return [k for k in self.lists()[listId]["items"].keys()]
