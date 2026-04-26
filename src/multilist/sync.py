@@ -79,10 +79,12 @@ class Synchronizer:
                     # Local List doesn't exist in remote DB -> Sync it there
                     sendToRemote = True
                 if sendToRemote:
-                    print( session.post(
-                        f"{self.remoteUrl}/syncList/{localId}",
-                        json=localData,
-                    ).text)
+                    print(
+                        session.post(
+                            f"{self.remoteUrl}/syncList/{localId}",
+                            json=localData,
+                        ).text
+                    )
 
             # Ensure that remote has what local has
             for remoteId in remoteLists:
@@ -108,10 +110,12 @@ class Synchronizer:
                         if localTime < remoteTime:
                             sendToLocal = True
                         elif localTime > remoteTime:
-                            print(session.post(
-                                f"{self.remoteUrl}/syncList/{remoteId}",
-                                json=localData,
-                            ).text)
+                            print(
+                                session.post(
+                                    f"{self.remoteUrl}/syncList/{remoteId}",
+                                    json=localData,
+                                ).text
+                            )
                 else:
                     # Remote not found
                     sendToLocal = True
@@ -169,10 +173,12 @@ class Synchronizer:
                     else:
                         sendToRemote = True
                     if sendToRemote:
-                        print( session.post(
-                            f"{self.remoteUrl}/syncItem/{listId}/{localId}",
-                            json=localData,
-                        ).text)
+                        print(
+                            session.post(
+                                f"{self.remoteUrl}/syncItem/{listId}/{localId}",
+                                json=localData,
+                            ).text
+                        )
 
                 # Ensure that remote has what local has
                 for remoteId in remoteItems:
@@ -199,10 +205,12 @@ class Synchronizer:
                             if localTime < remoteTime:
                                 sendToLocal = True
                             elif localTime > remoteTime:
-                                print( session.post(
-                                    f"{self.remoteUrl}/syncItem{listId}/{remoteId}",
-                                    json=localData,
-                                ).text)
+                                print(
+                                    session.post(
+                                        f"{self.remoteUrl}/syncItem{listId}/{remoteId}",
+                                        json=localData,
+                                    ).text
+                                )
                     else:
                         sendToLocal = True
 
