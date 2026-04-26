@@ -178,8 +178,15 @@ async def syncItem(listId: str, itemId: str, itemProps: db.SyncItemProps):
 #   @app.middleware("http")
 #   async def middleware(request: Request, call_next):
 #       try:
-#           print(await request.json())
-#       except:
-#           print( "no body")
+#           for k in request.headers.keys():
+#               v=request.headers[k]
+#               print( f"H >>{k}<<: >>{v}<<")
+#           for k,v in request.query_params.values():
+#               print( f"Q >>{k}<<: >>{v}<<")
+#           for k,v in request.path_params.values():
+#               print( f"P >>{k}<<: >>{v}<<")
+#           print(await request.body())
+#       except Exception as e:
+#           print( f"no body: {e}")
 #       response = await call_next(request)
 #       return response
