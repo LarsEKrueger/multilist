@@ -79,10 +79,10 @@ class Synchronizer:
                     # Local List doesn't exist in remote DB -> Sync it there
                     sendToRemote = True
                 if sendToRemote:
-                    resp = session.post(
+                    print( session.post(
                         f"{self.remoteUrl}/syncList/{localId}",
-                        data=json.dumps(localData),
-                    )
+                        json=localData,
+                    ).text)
 
             # Ensure that remote has what local has
             for remoteId in remoteLists:
@@ -108,10 +108,10 @@ class Synchronizer:
                         if localTime < remoteTime:
                             sendToLocal = True
                         elif localTime > remoteTime:
-                            resp = session.post(
+                            print(session.post(
                                 f"{self.remoteUrl}/syncList/{remoteId}",
-                                data=json.dumps(localData),
-                            )
+                                json=localData,
+                            ).text)
                 else:
                     # Remote not found
                     sendToLocal = True
@@ -169,10 +169,10 @@ class Synchronizer:
                     else:
                         sendToRemote = True
                     if sendToRemote:
-                        resp = session.post(
+                        print( session.post(
                             f"{self.remoteUrl}/syncItem/{listId}/{localId}",
-                            data=json.dumps(localData),
-                        )
+                            json=localData,
+                        ).text)
 
                 # Ensure that remote has what local has
                 for remoteId in remoteItems:
@@ -199,10 +199,10 @@ class Synchronizer:
                             if localTime < remoteTime:
                                 sendToLocal = True
                             elif localTime > remoteTime:
-                                resp = session.post(
+                                print( session.post(
                                     f"{self.remoteUrl}/syncItem{listId}/{remoteId}",
-                                    data=json.dumps(localData),
-                                )
+                                    json=localData,
+                                ).text)
                     else:
                         sendToLocal = True
 
