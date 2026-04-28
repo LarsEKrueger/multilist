@@ -207,6 +207,7 @@
       function refreshLists( ) {
         $.ajax({ url: "/lists", type: "GET", dataType:"json"}).done(function(json) {
           $( "#lists").empty();
+          $( "#soon").empty();
           $.each( json, function(index,listId) {
             <!-- Create the list as a DOM list item -->
             $( "<li class='listEntry' id='" + listId + "'>" +
@@ -333,7 +334,6 @@
                     $( "<li class='soonEntry'>" + 
                          "<div class='soonEntrySubj'>" + 
                            "<span class='soonEntrySubjTxt'>" + subjStr + "</span>" +
-                           " expires soon." + 
                          "</div>" +
                          "<div class='soonEntryDesc'>" + descStr +
                          "</div>" +
