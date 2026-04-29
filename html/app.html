@@ -313,7 +313,6 @@
                    "</li>").appendTo( "#it-" + listId);
                 <!-- Populate the item -->
                 $.ajax({ url: "/item/"+ listId+ "/" + itemId, type: "GET", dataType:"json"}).done(function(itemProp) {
-                  console.log(itemProp);
                   const subjStr = itemProp['subject'];
                   $( '#is-' + uId).text( subjStr);
                   $( '#eis-' + uId).val( subjStr);
@@ -335,6 +334,7 @@
                   if (expires < warningExpires) {
                     $( "<li class='soonEntry'>" + 
                          "<div class='soonEntrySubj'>" + 
+                           "<span class='soonEntryListName'>" + $( '#ln-' + listId).text() + "</span>" + ": " +
                            "<span class='soonEntrySubjTxt'>" + subjStr + "</span>" +
                          "</div>" +
                          "<div class='soonEntryDesc'>" + descStr +
