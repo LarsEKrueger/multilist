@@ -205,6 +205,12 @@
           });
         });
       }
+      <!-- Display time left -->
+      function formatTimeLeft( newTs, oldTs, suffix)
+      {
+        var days = Math.round( (newTs - oldTs) / 1000 / 3600 / 24);
+        return "(" + days + " days " + suffix + ")";
+      }
       <!-- Refresh all lists -->
       function refreshLists( ) {
         $.ajax({ url: "/lists", type: "GET", dataType:"json"}).done(function(json) {
@@ -332,10 +338,20 @@
                   <!-- If now is within the warning period, add a simple item to the warning list. -->
                   const expires = new Date(expStr).valueOf();
                   if (expires < warningExpires) {
+                    var timePref;
+                    if( now < expires)
+                    {
+                      timePref = formatTimeLeft( expires, now, " left");
+                    }
+                    else
+                    {
+                      timePref = formatTimeLeft( now, expires, " overdue");
+                    }
                     $( "<li class='soonEntry'>" + 
                          "<div class='soonEntrySubj'>" + 
                            "<span class='soonEntryListName'>" + $( '#ln-' + listId).text() + "</span>" + ": " +
-                           "<span class='soonEntrySubjTxt'>" + subjStr + "</span>" +
+                           "<span class='soonEntrySubjTxt'>" + subjStr + "</span> " +
+                           "<span class='soonTimePref'>" + timePref +  "</span> " +
                          "</div>" +
                          "<div class='soonEntryDesc'>" + descStr +
                          "</div>" +
