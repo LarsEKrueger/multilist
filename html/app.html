@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8">
     <title>MultiList App</title>
+    <link rel="stylesheet" href="jquery-ui.css">
     <style>
       table {
         white-space: nowrap;
@@ -76,9 +77,11 @@
       .wide {
         width:100%;
       }
-      .inputField {
-        min-width:3em;
-        width:100%;
+      .dateField {
+        width:5em;
+        font : inherit;
+        color : inherit;
+        outline : none;
       }
 
       .lists {
@@ -142,6 +145,7 @@
   </head>
   <body>
     <script src="jquery.js"></script>
+    <script src="jquery-ui.js"></script>
     <script>
       <!-- Compute milliseconds from a simplified ISO period string -->
       function computeMsOfPeriod(periodString) {
@@ -203,6 +207,18 @@
             var text=$( '#' + fieldId).removeClass("hidden").text();
             $( '#' + inputId).addClass("hidden").val(text);
           });
+        });
+      }
+      <!-- Function to make inputs react to input -->
+      function linkInputDirect( suffix, varName, inputId, callback) {
+        $( '#' + inputId).on( "change", function() {
+          var text=$( '#' + inputId).val();
+          data = {};
+          data[varName]=text;
+          if( callback !== undefined) {
+            callback( text);
+          }
+          $.ajax({ url: "/" + suffix, type: "PUT", contentType:"application/json", data:JSON.stringify(data)}).done(function(json) { });
         });
       }
       <!-- Display time left -->
@@ -294,8 +310,7 @@
                         "</td>" +
                         "<td class='fit rightSep'>" +
                           "<span class='label'>Expires&nbsp;</span>" +
-                          "<span class='field' id='exp-" + uId + "'></span>" +
-                          "<input class='hidden inputField' id='eexp-" + uId + "'>" +
+                          "<input type='text' class='dateField' id='eexp-" + uId + "'>" +
                         "</td>" +
                         "<td class='fit rightSep'>" +
                           "<span class='label'>Priority&nbsp;</span>" +
@@ -317,13 +332,15 @@
                       "</tr>" +
                     "</table>" +
                    "</li>").appendTo( "#it-" + listId);
+                $( '#eexp-'+ uId).button()
+                  .css({
+                  }).datepicker({ dateFormat: 'yy-mm-dd'});
                 <!-- Populate the item -->
                 $.ajax({ url: "/item/"+ listId+ "/" + itemId, type: "GET", dataType:"json"}).done(function(itemProp) {
                   const subjStr = itemProp['subject'];
                   $( '#is-' + uId).text( subjStr);
                   $( '#eis-' + uId).val( subjStr);
                   const expStr=itemProp['expires'];
-                  $( '#exp-' + uId).text( expStr);
                   $( '#eexp-' + uId).val( expStr);
                   const statStr=itemProp['status'];
                   $( '#status-' + uId).text( statStr);
@@ -360,7 +377,7 @@
                 });
                 <!-- Link the edit buttons -->
                 linkInput( 'item/' + listId + '/' + itemId, 'subject', 'is-' + uId, 'eis-' + uId);
-                linkInput( 'item/' + listId + '/' + itemId, 'expires', 'exp-' + uId, 'eexp-' + uId);
+                linkInputDirect( 'item/' + listId + '/' + itemId, 'expires', 'eexp-' + uId);
                 linkInput( 'item/' + listId + '/' + itemId, 'priority', 'prio-' + uId, 'eprio-' + uId, function(value) {setOrderFromPrio(uId,value);});
                 linkInput( 'item/' + listId + '/' + itemId, 'status', 'status-' + uId, 'estatus-' + uId);
                 linkInput( 'item/' + listId + '/' + itemId, 'details', 'desc-' + uId, 'edesc-' + uId);
