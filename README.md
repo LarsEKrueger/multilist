@@ -113,18 +113,17 @@ The following steps are required to execute the server without a command window.
   * ✔ Store last modified time
   * ✔ Synchronisation
   * ✔ Only return public DB fields
-* ☐ 0.2: fancy
+* ✔ 0.2: fancy
   * ✔ Correctly synchronize deleted items
   * ✔ Sync speedup
   * ✔ Frontend design
-  * ☐ jquery UI
-  * ☐ Datepicker
-  * ☐ Duration Picker
+  * ✔ jquery UI
+  * ✔ Datepicker
   * ✔ Text input via <input> / <textbox>
-  * ☐ Update frontend when sync changed something
-  * ☐ Error handling in JS/AJAX
 * ☐ 0.3: long-term support
   * ☐ Garbage collect delete uuid
+  * ☐ Update frontend when sync changed something
+  * ☐ Error handling in JS/AJAX
 
 
 ## Design decisions
