@@ -169,6 +169,9 @@
          overflow:hidden;
          display:inline-block;
       }
+      .itemdesc {
+         width: 100%;
+      }
     </style>
   </head>
   <body>
@@ -359,7 +362,7 @@
                         "</td>" +
                       "</tr>" +
                       "<tr><td colspan=5>" +
-                        "<input class='inputField' id='edesc-" + uId + "'>" +
+                        "<textarea class='itemdesc' rows=1 id='edesc-" + uId + "'></textarea>" +
                       "</tr>" +
                     "</table>" +
                    "</li>").appendTo( "#it-" + listId);
@@ -369,7 +372,7 @@
                   min:0,
                 });
                 $( '#estatus-' + uId).button();
-                $( '#edesc-' + uId).button();
+                <!-- $( '#edesc-' + uId).button(); -->
                 $( '#del-' + uId).button({icon:'ui-icon-minus'});
                 <!-- Populate the item -->
                 $.ajax({ url: "/item/"+ listId+ "/" + itemId, type: "GET", dataType:"json"}).done(function(itemProp) {
@@ -380,7 +383,16 @@
                   const statStr=itemProp['status'];
                   $( '#estatus-' + uId).val( statStr);
                   const descStr = itemProp['details'];
-                  $( '#edesc-' + uId).val( descStr);
+                  var lines=0;
+                  try { 
+                    lines = descStr.match(/\n/g).length;
+                  }
+                  catch (err)
+                  {
+                    <!-- Do nothing intentionally -->
+                  }
+                  console.log( 'Item ' + itemId + ': ' + lines + ' lines');
+                  $( '#edesc-' + uId).val( descStr).attr('rows', lines + 1);
                   var prio=itemProp['priority'];
                   $( '#eprio-' + uId).val( prio);
                   setOrderFromPrio( uId, prio);
