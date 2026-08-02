@@ -5,48 +5,6 @@
     <title>MultiList App</title>
     <link rel="stylesheet" href="jquery-ui.css">
     <style>
-      table {
-        white-space: nowrap;
-        width: 100%;
-      }
-      td {
-        max-width: 0;
-        vertical-align: middle;
-      }
-      td.fit {
-        width: 0;
-        min-width: fit-content;
-      }
-      td.rightSep {
-        border-right-width:1px;
-        border-right-style:solid;
-      }
-      .button {
-         background: #dddddd;
-         border-left-color: #eeeeee;
-         border-top-color: #eeeeee;
-         border-right-color: #cccccc;
-         border-bottom-color: #cccccc;
-         border-width: 1px;
-         border-style:solid;
-         margin: 5px;
-      }
-      .button:hover {
-         background: #ddddee;
-         border-left-color: #eeeeee;
-         border-top-color: #eeeeee;
-         border-right-color: #cccccc;
-         border-bottom-color: #cccccc;
-         border-width: 2px;
-         border-style:solid;
-         margin: 4px;
-      }
-      .button:active {
-         border-left-color: #cccccc;
-         border-top-color: #cccccc;
-         border-right-color: #eeeeee;
-         border-bottom-color: #eeeeee;
-      }
       .delBtn {
       }
       .delBtn::after {
@@ -57,121 +15,62 @@
       .addBtn::after {
         content:"\2795";
       }
-      .label {
-         display: inline-block;
-      }
-      .field {
-         background: #eeeeee;
-         border-color: #eeeeee;
-         min-width: 1em;
-         min-height: 1em;
-         display: inline-block;
-      }
-      .field:hover {
-         background: #ffffff;
-         border-left-color: #cccccc;
-         border-top-color: #cccccc;
-         border-right-color: #eeeeee;
-         border-bottom-color: #eeeeee;
-      }
-      .wide {
-        width:100%;
-      }
-      .inputField {
-        min-width: 5em;
-        width:92%;
-        font : inherit;
-        color : inherit;
-        outline : none;
-        text-align : left;
-        cursor : text;
-      }
-      .warnField {
-        width: 3em;
-        font : inherit;
-        color : inherit;
-        outline : none;
-        text-align : left;
-        cursor : text;
-      }
-      .prioField {
-        width:3em;
-        font : inherit;
-        color : inherit;
-        outline : none;
-        text-align : left;
-        cursor : text;
-      }
-      .dateField {
-        width:5em;
-        font : inherit;
-        color : inherit;
-        outline : none;
-      }
-      .statusField {
-        width: 5em;
-        font : inherit;
-        color : inherit;
-        outline : none;
-      }
-
-      .lists {
-        list-style-position:inside;
-        padding:0px;
-        margin:0px;
-        display:flex;
-        flex-direction:column;
-      }
-      .listEntry {
-        border-width:1px;
-        margin: 4px;
-        background:#eeeeff;
-        order:1000000;
-      }
-      .listEntry::marker {
-        content:none;
-      }
-
       .soon {
-        padding:5px;
+        padding:0;
         margin:0;
+        margin-bottom:1em;
+        background:black;
       }
       .soonEntry {
-        background:#ffcccc;
-        margin:1px;
-        order:1000000;
+        background:white;
+        display:flex;
+        flex-direction: row;
+        margin-bottom: 2px;
       }
       .soonEntry::marker {
         content:none;
       }
-      .items {
-        display:flex;
-        flex-direction:column;
-        padding:5px;
+      .soonTimePref {
+        margin-right: 1em;
+        width: 15%;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
       }
-      .itemEntry {
-        border-top-style:solid;
-          border-width: 1px;
+      .soonTimePrefInner {
       }
-      .itemEntry::marker {
-        content:none;
+      .soonTimeComing {
+        background: yellow;
+        color:black;
       }
-      .editField {
-         background: #ffffff;
-         border-left-color: #cccccc;
-         border-top-color: #cccccc;
-         border-right-color: #eeeeee;
-         border-bottom-color: #eeeeee;
-         border-width: 1px;
-         border-style:solid;
-         margin: 5px;
-         resize:horizontal;
-         overflow:hidden;
-         display:inline-block;
+      .soonTimeOverdue {
+        background: black;
+        color:yellow;
       }
-      .itemdesc {
-         width: 100%;
+      .soonEntryInfo {
+        display: flex;
+        flex-direction: column;
+        width:100%;
       }
+      .soonEntrySubj {
+        display: flex;
+        flex-direction: row;
+      }
+      .soonEntryListName {
+
+      }
+      .soonEntrySubjTxt {
+
+      }
+      .soonEntryDescBox {
+        background: #eee;
+        width:100%;
+      }
+      .soonEntryDesc {
+        font-family: serif;
+      }
+
     </style>
   </head>
   <body>
@@ -256,7 +155,7 @@
       function formatTimeLeft( newTs, oldTs, suffix)
       {
         var days = Math.round( (newTs - oldTs) / 1000 / 3600 / 24);
-        return "(" + days + " days " + suffix + ")";
+        return days + " days " + suffix;
       }
       <!-- Refresh all lists -->
       function refreshLists( ) {
@@ -266,29 +165,17 @@
           $.each( json, function(index,listId) {
             <!-- Create the list as a DOM list item -->
             $( "<li class='listEntry' id='" + listId + "'>" +
-                  "<table>" +
-                    "<tr class='listHeader' id='" + listId + "'>" +
-                      "<td>"+
-                        "<input class='inputField' id='eln-" + listId + "'>" +
-                      "</td>"+
-                      "<td class='fit rightSep'>"+
-                        "<span class='label'>Warn&nbsp;</span>" +
-                        "<input class='warnField' id='ewp-" + listId + "' title='Format: number[dwm]'>" +
-                        "<span class='label'>&nbsp;before</span>" +
-                      "</td>"+
-                      "<td class='fit rightSep'>"+
-                        "<span class='label'>Order&nbsp;</span>" +
-                        "<input class='prioField' id='eprio-" + listId + "'>" +
-                      "</td>"+
-                      "<td class='fit'>"+
-                        "<button class='ui-button ui-widget ui-corner-all ui-button-icon-only' id='ai-" + listId + "'>Add</button>" +
-                        "<button class='ui-button ui-widget ui-corner-all ui-button-icon-only' id='del-" + listId + "'>Delete</button>" +
-                      "</td>"+
-                    "</tr>" +
-                    "<tr><td colspan=4>" +
-                      "<ul class='items' id='it-" + listId + "'></ul>" +
-                    "</td></tr>" +
-                  "</table>" +
+                  "<span class='listHeader' id='" + listId + "'>" +
+                    "<input class='inputField' id='eln-" + listId + "'>" +
+                    "<span class='label'>Warn&nbsp;</span>" +
+                    "<input class='warnField' id='ewp-" + listId + "' title='Format: number[dwm]'>" +
+                    "<span class='label'>&nbsp;before</span>" +
+                    "<span class='label'>Order&nbsp;</span>" +
+                    "<input class='prioField' id='eprio-" + listId + "'>" +
+                    "<button class='ui-button ui-widget ui-corner-all ui-button-icon-only' id='ai-" + listId + "'>Add</button>" +
+                    "<button class='ui-button ui-widget ui-corner-all ui-button-icon-only' id='del-" + listId + "'>Delete</button>" +
+                  "</span>" +
+                  "<ul class='items' id='it-" + listId + "'></ul>" +
                "</li>"
             ).appendTo( "#lists");
             $( '#eln-' + listId).button();
@@ -400,23 +287,27 @@
                   const expires = new Date(expStr).valueOf();
                   if (expires < warningExpires) {
                     var timePref;
+                    var timeClass;
                     if( now < expires)
                     {
                       timePref = formatTimeLeft( expires, now, " left");
+                      timeClass = 'soonTimeComing';
                     }
                     else
                     {
                       timePref = formatTimeLeft( now, expires, " overdue");
+                      timeClass = 'soonTimeOverdue';
                     }
                     $( "<li class='soonEntry'>" + 
-                         "<div class='soonEntrySubj'>" + 
-                           "<span class='soonEntryListName'>" + $( '#eln-' + listId).val() + "</span>" + ": " +
-                           "<span class='soonEntrySubjTxt'>" + subjStr + "</span> " +
-                           "<span class='soonTimePref'>" + timePref +  "</span> " +
-                         "</div>" +
-                         "<div class='soonEntryDesc'>" + descStr +
-                         "</div>" +
-                       "</li>").appendTo( '#soon');
+                      "<div class='soonTimePref " + timeClass + "'><span class='soonTimePrefInner'>" + timePref +  "</span></div> " +
+                        "<div class='soonEntryInfo'>" +
+                          "<div class='soonEntrySubj'>" + 
+                            "<span class='soonEntryListName'>" + $( '#eln-' + listId).val() + "</span>" + ":&nbsp;" +
+                            "<span class='soonEntrySubjTxt'>" + subjStr + "</span> " +
+                          "</div>" +
+                          "<pre class='soonEntryDescBox'<><span class='soonEntryDesc'>" + descStr + "<span></pre>" +
+                        "</div>" +
+                      "</li>").appendTo( '#soon');
                   }
                 });
                 <!-- Link the edit buttons -->
