@@ -71,6 +71,84 @@
         font-family: serif;
       }
 
+
+      .labelLeft {
+        margin-left: 1em;
+        margin-right: 0.5em;
+      }
+      .labelRight {
+        margin-left: 0.5em;
+        margin-right: 1em;
+      }
+
+      .lists {
+        padding:0;
+      }
+
+      .listEntry {
+        display: flex;
+        flex-direction: column;
+        margin-bottom:2em;
+        background:#eee;
+      }
+      .listEntry::marker {
+        content:none;
+      }
+
+      .listHeader {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+      }
+
+      .inputField {
+        width:100%;
+      }
+      .warnField {
+        width: 2em;
+      }
+      .prioField {
+        width:5em;
+      }
+
+      .listOptions {
+        visibility: hidden;
+        height:0px;
+      }
+
+      .listOptionCheck {
+        margin-left: 2em;
+      }
+
+      .items {
+         padding-left: 0.5em;
+         background-color:white;
+      }
+      .itemEntry {
+        display:flex;
+        flex-direction:column;
+        margin-bottom:0.5em;
+      }
+      .itemEntry::marker {
+        content:none;
+      }
+      .itemHeader {
+        display:flex;
+        flex-direction:row;
+        align-items: center;
+      }
+      .itemInputField {
+        width:100%;
+      }
+      .itemDateField {
+        width:7em;
+      }
+      .itemPrioField {
+        width:6em;
+      }
+      .itemStatusField {
+        width:6em;
+      }
     </style>
   </head>
   <body>
@@ -167,24 +245,34 @@
             $( "<li class='listEntry' id='" + listId + "'>" +
                   "<span class='listHeader' id='" + listId + "'>" +
                     "<input class='inputField' id='eln-" + listId + "'>" +
-                    "<span class='label'>Warn&nbsp;</span>" +
+                    "<span class='labelLeft'>Warn</span>" +
                     "<input class='warnField' id='ewp-" + listId + "' title='Format: number[dwm]'>" +
-                    "<span class='label'>&nbsp;before</span>" +
-                    "<span class='label'>Order&nbsp;</span>" +
+                    "<span class='labelRight'>before</span>" +
+                    "<span class='labelLeft'>Order</span>" +
                     "<input class='prioField' id='eprio-" + listId + "'>" +
                     "<button class='ui-button ui-widget ui-corner-all ui-button-icon-only' id='ai-" + listId + "'>Add</button>" +
                     "<button class='ui-button ui-widget ui-corner-all ui-button-icon-only' id='del-" + listId + "'>Delete</button>" +
+                    "<button class='ui-button ui-widget ui-corner-all ui-button-icon-only' id='opt-" + listId + "'>...</button>" +
+                  "</span>" +
+                  "<span class='listOptions'>" +
+                    "<span class='labelLeft'>Show as</span>" +
+                    "<select id='loShow-" + listId + "'>" + 
+                      "<option value='front'>front page</option>" + 
+                      "<option value='tab'>separate tab</option>" + 
+                    "</select>" + 
+                    "<input class='listOptionCheck' type='checkbox' id='loExp-" + listId + "'>Show expiration</input>" + 
+                    "<input class='listOptionCheck' type='checkbox' id='loPrio-" + listId + "'>Show priority</input>" + 
+                    "<input class='listOptionCheck' type='checkbox' id='loStatus-" + listId + "'>Show status</input>" + 
                   "</span>" +
                   "<ul class='items' id='it-" + listId + "'></ul>" +
                "</li>"
             ).appendTo( "#lists");
-            $( '#eln-' + listId).button();
-            $( '#ewp-' + listId).button();
-            $( '#eprio-' + listId).button().spinner( {
+            $( '#eprio-' + listId).spinner( {
                   min:0,
                 });
             $( '#ai-' + listId).button({icon: 'ui-icon-plus'});
             $( '#del-' + listId).button({icon: 'ui-icon-minus'});
+            $( '#opt-' + listId).button({icon: 'ui-icon-triangle-1-s'});
             var warning_period = '';
             <!-- Populate the properties. Do it synchronously to simplify getting the warning period.-->
             $.ajax({ url: '/list/' + listId, type: "GET", dataType:"json", async:false}).done(function(json) {
@@ -221,46 +309,32 @@
                 let uId=listId+'-'+itemId;
                 <!-- Create the item as a dom list item -->
                 $( "<li class='itemEntry' id='" + uId + "'>"+
-                    "<table>" +
-                      "<tr class='itemHeader' id='" + uId + "'>" +
-                        "<td>" +
-                          "<input class='inputField' id='eis-" + uId + "'>" +
-                        "</td>" +
-                        "<td class='fit rightSep'>" +
-                          "<span class='label'>Expires&nbsp;</span>" +
-                          "<input type='text' class='dateField' id='eexp-" + uId + "'>" +
-                        "</td>" +
-                        "<td class='fit rightSep'>" +
-                          "<span class='label'>Priority&nbsp;</span>" +
-                          "<input class='prioField' id='eprio-" + uId + "'>" +
-                        "</td>" +
-                        "<td class='fit rightSep'>" +
-                          "<span class='label'>Status&nbsp;</span>" +
-                          "<select class='statusField' id='estatus-" + uId + "'>" +
-                          "<option></option>" +
-                          "<option>To Do</option>" +
-                          "<option>In Work</option>" +
-                          "<option>Done</option>" +
-                          "<option>Blocked</option>" +
-                          "</select>" +
-                        "</td>" +
-                        "<td class='fit'>" +
-                          "<button class='ui-button ui-widget ui-corner-all ui-button-icon-only' id='del-" + uId + "'>Delete</button>" +
-                        "</td>" +
-                      "</tr>" +
-                      "<tr><td colspan=5>" +
-                        "<textarea class='itemdesc' rows=1 id='edesc-" + uId + "'></textarea>" +
-                      "</tr>" +
-                    "</table>" +
+                     "<span class='itemHeader' id='" + uId + "'>" +
+                      "<button class='ui-button ui-widget ui-corner-all ui-button-icon-only' id='showDesc-" + uId + "'>Show Description</button>" +
+                       "<input class='itemInputField' id='eis-" + uId + "'>" +
+                       "<span class='labelLeft'>Expires</span>" +
+                       "<input type='text' class='itemDateField' id='eexp-" + uId + "'>" +
+                       "<span class='labelLeft'>Priority</span>" +
+                       "<input class='itemPrioField' id='eprio-" + uId + "'>" +
+                       "<span class='labelLeft'>Status</span>" +
+                       "<select class='itemStatusField' id='estatus-" + uId + "'>" +
+                         "<option></option>" +
+                         "<option>To Do</option>" +
+                         "<option>In Work</option>" +
+                         "<option>Done</option>" +
+                         "<option>Blocked</option>" +
+                       "</select>" +
+                       "<span class='labelLeft'></span>" +
+                       "<button class='ui-button ui-widget ui-corner-all ui-button-icon-only' id='del-" + uId + "'>Delete</button>" +
+                     "</span>" +
+                     "<textarea class='itemdesc' rows=1 id='edesc-" + uId + "'></textarea>" +
                    "</li>").appendTo( "#it-" + listId);
-                $( '#eis-' + uId).button();
-                $( '#eexp-'+ uId).button().datepicker({ dateFormat: 'yy-mm-dd'});
-                $( '#eprio-' + uId).button().spinner( {
+                $( '#eexp-'+ uId).datepicker({ dateFormat: 'yy-mm-dd'});
+                $( '#eprio-' + uId).spinner( {
                   min:0,
                 });
-                $( '#estatus-' + uId).button();
-                <!-- $( '#edesc-' + uId).button(); -->
                 $( '#del-' + uId).button({icon:'ui-icon-minus'});
+                $( '#showDesc-' + uId).button({icon:'ui-icon-triangle-1-n'});
                 <!-- Populate the item -->
                 $.ajax({ url: "/item/"+ listId+ "/" + itemId, type: "GET", dataType:"json"}).done(function(itemProp) {
                   const subjStr = itemProp['subject'];
