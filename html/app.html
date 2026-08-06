@@ -349,7 +349,7 @@
                   $( '#estatus-' + uId).val( statStr);
                   const descStr = itemProp['details'];
                   var lines=0;
-                  try { 
+                  try {
                     lines = descStr.match(/\n/g).length;
                   }
                   catch (err)
@@ -357,7 +357,7 @@
                     <!-- Do nothing intentionally -->
                   }
                   console.log( 'Item ' + itemId + ': ' + lines + ' lines');
-                  if( lines == 0) {
+                  if( descStr == "") {
                     <!-- Empty descriptions are hidden -->
                     $('#edesc-' + uId).attr('hidden',"");
                     $('#showDesc-' + uId).button( {icon: 'ui-icon-triangle-1-e'});
