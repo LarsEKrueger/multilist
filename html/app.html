@@ -347,7 +347,7 @@
                   $( '#eexp-' + uId).val( expStr);
                   const statStr=itemProp['status'];
                   $( '#estatus-' + uId).val( statStr);
-                  const descStr = itemProp['details'];
+                  const descStr = itemProp['details'] || "";
                   var lines=0;
                   try {
                     lines = descStr.match(/\n/g).length;
