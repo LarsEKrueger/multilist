@@ -357,6 +357,11 @@
                     <!-- Do nothing intentionally -->
                   }
                   console.log( 'Item ' + itemId + ': ' + lines + ' lines');
+                  if( lines == 0) {
+                    <!-- Empty descriptions are hidden -->
+                    $('#edesc-' + uId).attr('hidden',"");
+                    $('#showDesc-' + uId).button( {icon: 'ui-icon-triangle-1-e'});
+                  }
                   $( '#edesc-' + uId).val( descStr).attr('rows', lines + 1);
                   var prio=itemProp['priority'];
                   $( '#eprio-' + uId).val( prio);
@@ -394,6 +399,20 @@
                 linkInputDirect( 'item/' + listId + '/' + itemId, 'priority', 'eprio-' + uId, function(value) {setOrderFromPrio(uId,value);}, 'spinchange');
                 linkInputDirect( 'item/' + listId + '/' + itemId, 'status',  'estatus-' + uId);
                 linkInputDirect( 'item/' + listId + '/' + itemId, 'details', 'edesc-' + uId);
+                <!-- Link the description button -->
+                $( '#showDesc-' + uId).on( 'click', function() {
+                  var descObj = $('#edesc-' + uId);
+                  var btnObj = $('#showDesc-' + uId);
+                  if( descObj.prop('hidden')) {
+                    <!-- Textarea hidden -> reveal -->
+                    descObj.removeAttr('hidden');
+                    btnObj.button( {icon: 'ui-icon-triangle-1-s'});
+                  } else {
+                    <!-- Textarea visible -> hide -->
+                    descObj.attr('hidden',"");
+                    btnObj.button( {icon: 'ui-icon-triangle-1-e'});
+                  }
+                });
                 <!-- Delete item button -->
                 $( '#del-' + uId).click(function() {
                   if( confirm( "Delete item?")) {
