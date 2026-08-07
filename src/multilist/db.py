@@ -42,6 +42,10 @@ class ListProps(BaseModel):
     name: str | None = None
     priority: int | None = None
     warning_period: str | None = None
+    optShow: str | None = None
+    optExp: bool | None = None
+    optPrio: bool | None = None
+    optStatus: bool | None = None
 
 
 class SyncListProps(ListProps):
@@ -160,33 +164,32 @@ class Database:
     def updateList(
         self,
         listId,
-        name: str = None,
-        priority: int = None,
-        warning_period: str = None,
+        listProps: ListProps,
     ):
         """Update the fields of a particular list. Only change those fields that are not None."""
         data = self.lists()[listId]
-        _updateDict_(data, "name", name)
-        _updateDict_(data, "priority", priority)
-        _updateDict_(data, "warning_period", warning_period)
+        _updateDict_(data, "name", listProps.name)
+        _updateDict_(data, "priority", listProps.priority)
+        _updateDict_(data, "warning_period", listProps.warning_period)
+        _updateDict_(data, "optShow", listProps.optShow)
+        _updateDict_(data, "optExp", listProps.optExp)
+        _updateDict_(data, "optPrio", listProps.optPrio)
+        _updateDict_(data, "optStatus", listProps.optStatus)
         _modifiedNow_(data)
         self._write_()
 
-    def syncList(
-        self,
-        listId,
-        last_modified: int,
-        name: str = None,
-        priority: int = None,
-        warning_period: str = None,
-    ):
+    def syncList(self, listId, listProps: SyncListProps):
         if not listId in self.lists():
             self.lists()[listId] = {}
         data = self.lists()[listId]
-        _updateDict_(data, "name", name)
-        _updateDict_(data, "priority", priority)
-        _updateDict_(data, "warning_period", warning_period)
-        _updateDict_(data, "last_modified", last_modified)
+        _updateDict_(data, "name", listProps.name)
+        _updateDict_(data, "priority", listProps.priority)
+        _updateDict_(data, "warning_period", listProps.warning_period)
+        _updateDict_(data, "last_modified", listProps.last_modified)
+        _updateDict_(data, "optShow", listProps.optShow)
+        _updateDict_(data, "optExp", listProps.optExp)
+        _updateDict_(data, "optPrio", listProps.optPrio)
+        _updateDict_(data, "optStatus", listProps.optStatus)
         # If the listId has been brought back to life, remove it from the deleted list
         if listId in self.deleted():
             del self.deleted()[listId]
@@ -200,7 +203,16 @@ class Database:
         """Return a dict of list properties."""
         return _copyProps_(
             self.lists()[listId],
-            ["name", "warning_period", "last_modified", "priority"],
+            [
+                "name",
+                "warning_period",
+                "last_modified",
+                "priority",
+                "optShow",
+                "optExp",
+                "optPrio",
+                "optStatus",
+            ],
         )
 
     # ---------- item API ----------

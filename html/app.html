@@ -103,6 +103,15 @@
         align-items: center;
       }
 
+      .optHeader {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+      }
+      .hiddenOptHeader {
+        display: none;
+      }
+
       .inputField {
         width:100%;
       }
@@ -114,8 +123,6 @@
       }
 
       .listOptions {
-        visibility: hidden;
-        height:0px;
       }
 
       .listOptionCheck {
@@ -233,11 +240,48 @@
           $.ajax({ url: "/" + suffix, type: "PUT", contentType:"application/json", data:JSON.stringify(data)}).done(function(json) { });
         });
       }
+      function linkCheckboxDirect( suffix, varName, inputId) {
+        $( '#' + inputId).on( "change", function() {
+          var checked=$( '#' + inputId).prop( 'checked');
+          data = {};
+          data[varName]=checked;
+          $.ajax({ url: "/" + suffix, type: "PUT", contentType:"application/json", data:JSON.stringify(data)}).done(function(json) { });
+          refreshLists();
+        });
+      }
       <!-- Display time left -->
       function formatTimeLeft( newTs, oldTs, suffix)
       {
         var days = Math.round( (newTs - oldTs) / 1000 / 3600 / 24);
         return days + " days " + suffix;
+      }
+      <!-- Connect a show-hide button to its content -->
+      function connectShowHideButton(btnId, contentId, uId)
+      {
+        $( '#' + btnId + '-' + uId).on( 'click', function() {
+          var descObj = $('#' + contentId + '-' + uId);
+          var btnObj = $('#' + btnId + '-' + uId);
+          if( descObj.prop('hidden')) {
+            <!-- Textarea hidden -> reveal -->
+            descObj.removeAttr('hidden');
+            btnObj.button( {icon: 'ui-icon-triangle-1-s'});
+          } else {
+            <!-- Textarea visible -> hide -->
+            descObj.attr('hidden',"");
+            btnObj.button( {icon: 'ui-icon-triangle-1-e'});
+          }
+        });
+      }
+      <!-- Convert an undefined value to true. Convert everything to a correspoding bool.  -->
+      function undefinedToTrue(val)
+      {
+        return (val == undefined) || (!!val);
+      }
+      <!-- Hide a span if the option is off -->
+      function hideOptionalSpan( idPref, uId, opt) {
+        if( !opt) {
+          $( '#' + idPref + '-' + uId).removeClass('optHeader').addClass('hiddenOptHeader');
+        }
       }
       <!-- Refresh all lists -->
       function refreshLists( ) {
@@ -249,24 +293,26 @@
             $( "<li class='listEntry' id='" + listId + "'>" +
                   "<span class='listHeader' id='" + listId + "'>" +
                     "<input class='inputField' id='eln-" + listId + "'>" +
-                    "<span class='labelLeft'>Warn</span>" +
-                    "<input class='warnField' id='ewp-" + listId + "' title='Format: number[dwm]'>" +
-                    "<span class='labelRight'>before</span>" +
+                    "<span class='optHeader' id='lhExp-" + listId + "'>" +
+                      "<span class='labelLeft'>Warn</span>" +
+                      "<input class='warnField' id='ewp-" + listId + "' title='Format: number[dwm]'>" +
+                      "<span class='labelRight'>before</span>" +
+                    "</span>" +
                     "<span class='labelLeft'>Order</span>" +
                     "<input class='prioField' id='eprio-" + listId + "'>" +
                     "<button class='ui-button ui-widget ui-corner-all ui-button-icon-only' id='ai-" + listId + "'>Add</button>" +
                     "<button class='ui-button ui-widget ui-corner-all ui-button-icon-only' id='del-" + listId + "'>Delete</button>" +
                     "<button class='ui-button ui-widget ui-corner-all ui-button-icon-only' id='opt-" + listId + "'>...</button>" +
                   "</span>" +
-                  "<span class='listOptions'>" +
+                  "<span class='listOptions' id='listOpts-" + listId + "' hidden>" +
                     "<span class='labelLeft'>Show as</span>" +
                     "<select id='loShow-" + listId + "'>" + 
                       "<option value='front'>front page</option>" + 
                       "<option value='tab'>separate tab</option>" + 
                     "</select>" + 
-                    "<input class='listOptionCheck' type='checkbox' id='loExp-" + listId + "'>Show expiration</input>" + 
-                    "<input class='listOptionCheck' type='checkbox' id='loPrio-" + listId + "'>Show priority</input>" + 
-                    "<input class='listOptionCheck' type='checkbox' id='loStatus-" + listId + "'>Show status</input>" + 
+                    "<input class='listOptionCheck' type='checkbox' checked='checked' id='loExp-" + listId + "'>Show expiration</input>" + 
+                    "<input class='listOptionCheck' type='checkbox' checked='checked' id='loPrio-" + listId + "'>Show priority</input>" + 
+                    "<input class='listOptionCheck' type='checkbox' checked='checked' id='loStatus-" + listId + "'>Show status</input>" + 
                   "</span>" +
                   "<ul class='items' id='it-" + listId + "'></ul>" +
                "</li>"
@@ -276,8 +322,12 @@
                 });
             $( '#ai-' + listId).button({icon: 'ui-icon-plus'});
             $( '#del-' + listId).button({icon: 'ui-icon-minus'});
-            $( '#opt-' + listId).button({icon: 'ui-icon-triangle-1-s'});
+            $( '#opt-' + listId).button({icon: 'ui-icon-triangle-1-e'});
             var warning_period = '';
+            var optShow;
+            var optExp;
+            var optPrio;
+            var optStatus;
             <!-- Populate the properties. Do it synchronously to simplify getting the warning period.-->
             $.ajax({ url: '/list/' + listId, type: "GET", dataType:"json", async:false}).done(function(json) {
               $( '#eln-' + listId).val( json['name']);
@@ -286,11 +336,30 @@
               let prio=json['priority'];
               $( '#eprio-' + listId).val( prio);
               setOrderFromPrio( listId, prio);
+
+              optShow = json['optShow'] || "front" ;
+              optExp = undefinedToTrue(json['optExp']);
+              optPrio = undefinedToTrue(json['optPrio']);
+              optStatus = undefinedToTrue(json['optStatus']);
+              console.log( listId + ': ' + json['name']);
+              console.log( listId + ': ' + optShow);
+              console.log( listId + ': ' + optExp);
+              console.log( listId + ': ' + optPrio);
+              console.log( listId + ': ' + optStatus);
+
+              $( '#loShow-' + listId).val( optShow);
+              $( '#loExp-' + listId).prop( 'checked', optExp);
+              $( '#loPrio-' + listId).prop( 'checked', optPrio);
+              $( '#loStatus-' + listId).prop( 'checked', optStatus);
             });
             <!-- Make properties editable -->
             linkInputDirect( 'list/' + listId, 'name',  'eln-' + listId);
             linkInputDirect( 'list/' + listId, 'priority',  'eprio-' + listId, function(value) {setOrderFromPrio(listId,value);}, 'spinchange');
             linkInputDirect( 'list/' + listId, 'warning_period', 'ewp-' + listId);
+            linkInputDirect( 'list/' + listId, 'optShow', 'loShow-' + listId);
+            linkCheckboxDirect( 'list/' + listId, 'optExp', 'loExp-' + listId);
+            linkCheckboxDirect( 'list/' + listId, 'optPrio', 'loPrio-' + listId);
+            linkCheckboxDirect( 'list/' + listId, 'optStatus', 'loStatus-' + listId);
             <!-- Delete list button -->
             $( '#del-' + listId).click(function() {
               if( confirm( "Delete list?")) {
@@ -303,9 +372,12 @@
                 });
               }
             });
+            <!-- Connect list options button -->
+            connectShowHideButton( 'opt', 'listOpts', listId);
             const warningMs = computeMsOfPeriod(warning_period);
             const now=Date.now();
             const warningExpires = now + warningMs;
+            hideOptionalSpan( 'lhExp', listId, optExp);
             <!-- Populate the list items -->
             $.ajax({ url: "/items/"+ listId, type: "GET", dataType:"json"}).done(function(items) {
               listDom = $( "it-" + listId).empty();
@@ -316,18 +388,24 @@
                      "<span class='itemHeader' id='" + uId + "'>" +
                       "<button class='ui-button ui-widget ui-corner-all ui-button-icon-only' id='showDesc-" + uId + "'>Show Description</button>" +
                        "<input class='itemInputField' id='eis-" + uId + "'>" +
-                       "<span class='labelLeft'>Expires</span>" +
-                       "<input type='text' class='itemDateField' id='eexp-" + uId + "'>" +
-                       "<span class='labelLeft'>Priority</span>" +
-                       "<input class='itemPrioField' id='eprio-" + uId + "'>" +
-                       "<span class='labelLeft'>Status</span>" +
-                       "<select class='itemStatusField' id='estatus-" + uId + "'>" +
-                         "<option></option>" +
-                         "<option>To Do</option>" +
-                         "<option>In Work</option>" +
-                         "<option>Done</option>" +
-                         "<option>Blocked</option>" +
-                       "</select>" +
+                       "<span class='optHeader' id='ihExp-" + uId + "'>" +
+                         "<span class='labelLeft'>Expires</span>" +
+                         "<input type='text' class='itemDateField' id='eexp-" + uId + "'>" +
+                       "</span>" +
+                       "<span class='optHeader' id='ihPrio-" + uId + "'>" +
+                         "<span class='labelLeft'>Priority</span>" +
+                         "<input class='itemPrioField' id='eprio-" + uId + "'>" +
+                       "</span>" +
+                       "<span class='optHeader' id='ihStatus-" + uId + "'>" +
+                         "<span class='labelLeft'>Status</span>" +
+                         "<select class='itemStatusField' id='estatus-" + uId + "'>" +
+                           "<option></option>" +
+                           "<option>To Do</option>" +
+                           "<option>In Work</option>" +
+                           "<option>Done</option>" +
+                           "<option>Blocked</option>" +
+                         "</select>" +
+                       "</span>" +
                        "<span class='labelLeft'></span>" +
                        "<button class='ui-button ui-widget ui-corner-all ui-button-icon-only' id='del-" + uId + "'>Delete</button>" +
                      "</span>" +
@@ -339,6 +417,9 @@
                 });
                 $( '#del-' + uId).button({icon:'ui-icon-minus'});
                 $( '#showDesc-' + uId).button({icon:'ui-icon-triangle-1-n'});
+                hideOptionalSpan( 'ihExp', uId, optExp);
+                hideOptionalSpan( 'ihPrio', uId, optPrio);
+                hideOptionalSpan( 'ihStatus', uId, optStatus);
                 <!-- Populate the item -->
                 $.ajax({ url: "/item/"+ listId+ "/" + itemId, type: "GET", dataType:"json"}).done(function(itemProp) {
                   const subjStr = itemProp['subject'];
@@ -356,7 +437,6 @@
                   {
                     <!-- Do nothing intentionally -->
                   }
-                  console.log( 'Item ' + itemId + ': ' + lines + ' lines');
                   if( descStr == "") {
                     <!-- Empty descriptions are hidden -->
                     $('#edesc-' + uId).attr('hidden',"");
@@ -399,20 +479,7 @@
                 linkInputDirect( 'item/' + listId + '/' + itemId, 'priority', 'eprio-' + uId, function(value) {setOrderFromPrio(uId,value);}, 'spinchange');
                 linkInputDirect( 'item/' + listId + '/' + itemId, 'status',  'estatus-' + uId);
                 linkInputDirect( 'item/' + listId + '/' + itemId, 'details', 'edesc-' + uId);
-                <!-- Link the description button -->
-                $( '#showDesc-' + uId).on( 'click', function() {
-                  var descObj = $('#edesc-' + uId);
-                  var btnObj = $('#showDesc-' + uId);
-                  if( descObj.prop('hidden')) {
-                    <!-- Textarea hidden -> reveal -->
-                    descObj.removeAttr('hidden');
-                    btnObj.button( {icon: 'ui-icon-triangle-1-s'});
-                  } else {
-                    <!-- Textarea visible -> hide -->
-                    descObj.attr('hidden',"");
-                    btnObj.button( {icon: 'ui-icon-triangle-1-e'});
-                  }
-                });
+                connectShowHideButton( 'showDesc', 'edesc', uId);
                 <!-- Delete item button -->
                 $( '#del-' + uId).click(function() {
                   if( confirm( "Delete item?")) {

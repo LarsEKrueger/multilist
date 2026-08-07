@@ -54,6 +54,7 @@ def serveFile(filename, mediaType):
         s = f.read()
     return Response(s, media_type=mediaType)
 
+
 def serveBinFile(filename, mediaType):
     # TODO: Use install folder
     with open(filename, "rb") as f:
@@ -71,21 +72,26 @@ async def root():
 async def jquery():
     return serveFile("jquery/jquery-4.0.0.min.js", "application/javascript")
 
+
 @app.get("/jquery-ui.js")
 async def jquery():
     return serveFile("jquery-ui/jquery-ui.min.js", "application/javascript")
+
 
 @app.get("/jquery-ui.css")
 async def jquery():
     return serveFile("jquery-ui/jquery-ui.min.css", "text/css")
 
+
 @app.get("/images/ui-icons_444444_256x240.png")
 async def jquery():
     return serveBinFile("jquery-ui/images/ui-icons_444444_256x240.png", "text/css")
 
+
 @app.get("/images/ui-icons_555555_256x240.png")
 async def jquery():
     return serveBinFile("jquery-ui/images/ui-icons_555555_256x240.png", "text/css")
+
 
 @app.get("/images/ui-icons_777777_256x240.png")
 async def jquery():
@@ -115,21 +121,13 @@ async def addList():
 
 @app.put("/list/{listId}")
 async def updateList(listId: str, listProps: db.ListProps):
-    database.updateList(
-        listId, listProps.name, listProps.priority, listProps.warning_period
-    )
+    database.updateList(listId, listProps)
     return {}
 
 
 @app.post("/syncList/{listId}")
 async def syncList(listId: str, listProps: db.SyncListProps):
-    database.syncList(
-        listId,
-        listProps.last_modified,
-        listProps.name,
-        listProps.priority,
-        listProps.warning_period,
-    )
+    database.syncList(listId, listProps)
     return {}
 
 
