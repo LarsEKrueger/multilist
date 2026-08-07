@@ -66,11 +66,7 @@ class Synchronizer:
                         remoteTime = remoteProps.last_modified
                         localTime = localData["last_modified"]
                         if localTime < remoteTime:
-                            database.syncList(
-                                localId,
-                                remoteTime,
-                                remoteProps
-                            )
+                            database.syncList( localId, remoteProps)
                         elif localTime > remoteTime:
                             sendToRemote = True
                 else:
