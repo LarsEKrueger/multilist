@@ -69,9 +69,7 @@ class Synchronizer:
                             database.syncList(
                                 localId,
                                 remoteTime,
-                                remoteProps.name,
-                                remoteProps.priority,
-                                remoteProps.warning_period,
+                                remoteProps
                             )
                         elif localTime > remoteTime:
                             sendToRemote = True
@@ -120,13 +118,7 @@ class Synchronizer:
                     # Remote not found
                     sendToLocal = True
                 if sendToLocal:
-                    database.syncList(
-                        remoteId,
-                        remoteProps.last_modified,
-                        remoteProps.name,
-                        remoteProps.priority,
-                        remoteProps.warning_period,
-                    )
+                    database.syncList( remoteId, remoteProps)
 
             # Go through all lists (should be identical between remote and local now) to sync the items
             localLists = database.getLists()
