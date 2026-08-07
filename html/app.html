@@ -246,7 +246,6 @@
           data = {};
           data[varName]=checked;
           $.ajax({ url: "/" + suffix, type: "PUT", contentType:"application/json", data:JSON.stringify(data)}).done(function(json) { });
-          refreshLists();
         });
       }
       <!-- Display time left -->
@@ -256,7 +255,7 @@
         return days + " days " + suffix;
       }
       <!-- Connect a show-hide button to its content -->
-      function connectShowHideButton(btnId, contentId, uId)
+      function connectShowHideButton(btnId, contentId, uId, reloadOnClose=false)
       {
         $( '#' + btnId + '-' + uId).on( 'click', function() {
           var descObj = $('#' + contentId + '-' + uId);
@@ -269,6 +268,10 @@
             <!-- Textarea visible -> hide -->
             descObj.attr('hidden',"");
             btnObj.button( {icon: 'ui-icon-triangle-1-e'});
+            if( reloadOnClose)
+            {
+              refreshLists();
+            }
           }
         });
       }
@@ -373,7 +376,7 @@
               }
             });
             <!-- Connect list options button -->
-            connectShowHideButton( 'opt', 'listOpts', listId);
+            connectShowHideButton( 'opt', 'listOpts', listId, true);
             const warningMs = computeMsOfPeriod(warning_period);
             const now=Date.now();
             const warningExpires = now + warningMs;
