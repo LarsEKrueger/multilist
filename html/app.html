@@ -160,6 +160,15 @@
       .itemStatusField {
         width:6em;
       }
+      .tabHeader {
+        display:flex;
+      }
+      .thiFirst {
+        order:-1000000;
+      }
+      .thiLast {
+        order:1000000;
+      }
     </style>
   </head>
   <body>
@@ -280,19 +289,50 @@
       {
         return (val == undefined) || (!!val);
       }
-      <!-- Hide a span if the option is off -->
+      // Hide a span if the option is off
       function hideOptionalSpan( idPref, uId, opt) {
         if( !opt) {
           $( '#' + idPref + '-' + uId).removeClass('optHeader').addClass('hiddenOptHeader');
         }
       }
-      <!-- Refresh all lists -->
+      // Refresh all lists
       function refreshLists( ) {
         $.ajax({ url: "/lists", type: "GET", dataType:"json"}).done(function(json) {
-          $( "#lists").empty();
           $( "#soon").empty();
+          // Prepare the default tabs. This will clean #lists automatically.
+          // However, the tabs object must be destroyed first on refresh, thus
+          // it will be created after loading the doc, then destroyed, then created again.
+          $( '#tabs').tabs('destroy').empty().append(
+            "<ul id='tabheader' class='tabHeader'>" +
+              "<li id='thi-start' class='thiFirst'><a href='#tab-start'>Start</a></li>" +
+            "</ul>" +
+            "<div id='tab-start'>" +
+              "<ul class='lists' id='lists'>" +
+              "</ul>" +
+            "</div>"
+            );
+
           $.each( json, function(index,listId) {
-            <!-- Create the list as a DOM list item -->
+            var listName;
+            var listPrio;
+            var warning_period = '';
+            var optShow;
+            var optExp;
+            var optPrio;
+            var optStatus;
+            <!-- Populate the properties. Do it synchronously to simplify getting the warning period.-->
+            $.ajax({ url: '/list/' + listId, type: "GET", dataType:"json", async:false}).done(function(json) {
+              listName = json['name']
+              warning_period = json['warning_period'];
+              listPrio=json['priority'];
+
+              optShow = json['optShow'] || "front" ;
+              optExp = undefinedToTrue(json['optExp']);
+              optPrio = undefinedToTrue(json['optPrio']);
+              optStatus = undefinedToTrue(json['optStatus']);
+
+            });
+            // Create the list as a DOM list item
             $( "<li class='listEntry' id='" + listId + "'>" +
                   "<span class='listHeader' id='" + listId + "'>" +
                     "<input class='inputField' id='eln-" + listId + "'>" +
@@ -326,35 +366,14 @@
             $( '#ai-' + listId).button({icon: 'ui-icon-plus'});
             $( '#del-' + listId).button({icon: 'ui-icon-minus'});
             $( '#opt-' + listId).button({icon: 'ui-icon-triangle-1-e'});
-            var warning_period = '';
-            var optShow;
-            var optExp;
-            var optPrio;
-            var optStatus;
-            <!-- Populate the properties. Do it synchronously to simplify getting the warning period.-->
-            $.ajax({ url: '/list/' + listId, type: "GET", dataType:"json", async:false}).done(function(json) {
-              $( '#eln-' + listId).val( json['name']);
-              warning_period = json['warning_period'];
-              $( '#ewp-' + listId).val( warning_period);
-              let prio=json['priority'];
-              $( '#eprio-' + listId).val( prio);
-              setOrderFromPrio( listId, prio);
-
-              optShow = json['optShow'] || "front" ;
-              optExp = undefinedToTrue(json['optExp']);
-              optPrio = undefinedToTrue(json['optPrio']);
-              optStatus = undefinedToTrue(json['optStatus']);
-              console.log( listId + ': ' + json['name']);
-              console.log( listId + ': ' + optShow);
-              console.log( listId + ': ' + optExp);
-              console.log( listId + ': ' + optPrio);
-              console.log( listId + ': ' + optStatus);
-
-              $( '#loShow-' + listId).val( optShow);
-              $( '#loExp-' + listId).prop( 'checked', optExp);
-              $( '#loPrio-' + listId).prop( 'checked', optPrio);
-              $( '#loStatus-' + listId).prop( 'checked', optStatus);
-            });
+            $( '#eln-' + listId).val( listName);
+            $( '#ewp-' + listId).val( warning_period);
+            $( '#eprio-' + listId).val( listPrio);
+            setOrderFromPrio( listId, listPrio);
+            $( '#loShow-' + listId).val( optShow);
+            $( '#loExp-' + listId).prop( 'checked', optExp);
+            $( '#loPrio-' + listId).prop( 'checked', optPrio);
+            $( '#loStatus-' + listId).prop( 'checked', optStatus);
             <!-- Make properties editable -->
             linkInputDirect( 'list/' + listId, 'name',  'eln-' + listId);
             linkInputDirect( 'list/' + listId, 'priority',  'eprio-' + listId, function(value) {setOrderFromPrio(listId,value);}, 'spinchange');
@@ -496,28 +515,35 @@
             <!-- Handle add items clicks -->
             $( "#ai-" + listId).click(function() {
               $.ajax({ url: "/items/" + listId, type: "POST"}).done(function(items) {
-                refreshLists();
+                document.reload();
               });
             });
           });
+
+          $('#tabheader').append( "<li id='thi-other' class='thiLast'><a href='#tab-other'>Other</a></li>");
+          $('#tabs').append(
+            "<div id='tab-other'>" +
+              "<button id='addList' class='ui-button ui-widget ui-corner-all'>Add List</button>" +
+            "</div>");
+          $('#tabs').tabs();
+
+          $( "#addList").button({icon: "ui-icon-plus"}).click(function() {
+            $.ajax({ url: "/lists", type: "POST", dataType:"json"}).done(function(items) {
+              refreshLists();
+            });
+          });
         })
-        $( "[title]").tooltip();
       }
 
       <!-- Load the initial list -->
       $( document ).ready(function() {
+        $( '#tabs').tabs();
         refreshLists();
-        $( "#addList").button({icon: "ui-icon-plus"}).click(function() {
-          $.ajax({ url: "/lists", type: "POST", dataType:"json"}).done(function(items) {
-            refreshLists();
-          });
-        });
       });
     </script>
     <ul class='soon' id='soon'>
     </ul>
-    <button id="addList" class="ui-button ui-widget ui-corner-all">Add List</button>
-    <ul class='lists' id="lists">
-    </ul>
+    <div id='tabs'>
+    </div>
   </body>
 </html>
