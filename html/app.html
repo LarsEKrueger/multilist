@@ -115,6 +115,9 @@
       .inputField {
         width:100%;
       }
+      .inputFieldTab {
+        width:5em;
+      }
       .warnField {
         width: 2em;
       }
@@ -333,33 +336,49 @@
 
             });
             // Create the list as a DOM list item
-            $( "<li class='listEntry' id='" + listId + "'>" +
-                  "<span class='listHeader' id='" + listId + "'>" +
-                    "<input class='inputField' id='eln-" + listId + "'>" +
-                    "<span class='optHeader' id='lhExp-" + listId + "'>" +
-                      "<span class='labelLeft'>Warn</span>" +
-                      "<input class='warnField' id='ewp-" + listId + "' title='Format: number[dwm]'>" +
-                      "<span class='labelRight'>before</span>" +
-                    "</span>" +
-                    "<span class='labelLeft'>Order</span>" +
-                    "<input class='prioField' id='eprio-" + listId + "'>" +
-                    "<button class='ui-button ui-widget ui-corner-all ui-button-icon-only' id='ai-" + listId + "'>Add</button>" +
-                    "<button class='ui-button ui-widget ui-corner-all ui-button-icon-only' id='del-" + listId + "'>Delete</button>" +
-                    "<button class='ui-button ui-widget ui-corner-all ui-button-icon-only' id='opt-" + listId + "'>...</button>" +
+
+            var listHtml = 
+                "<span class='listHeader' id='" + listId + "'>" +
+                  "<input class='inputField' id='eln-" + listId + "'>" +
+                  "<span class='optHeader' id='lhExp-" + listId + "'>" +
+                    "<span class='labelLeft'>Warn</span>" +
+                    "<input class='warnField' id='ewp-" + listId + "' title='Format: number[dwm]'>" +
+                    "<span class='labelRight'>before</span>" +
                   "</span>" +
-                  "<span class='listOptions' id='listOpts-" + listId + "' hidden>" +
-                    "<span class='labelLeft'>Show as</span>" +
-                    "<select id='loShow-" + listId + "'>" + 
-                      "<option value='front'>front page</option>" + 
-                      "<option value='tab'>separate tab</option>" + 
-                    "</select>" + 
-                    "<input class='listOptionCheck' type='checkbox' checked='checked' id='loExp-" + listId + "'>Show expiration</input>" + 
-                    "<input class='listOptionCheck' type='checkbox' checked='checked' id='loPrio-" + listId + "'>Show priority</input>" + 
-                    "<input class='listOptionCheck' type='checkbox' checked='checked' id='loStatus-" + listId + "'>Show status</input>" + 
-                  "</span>" +
-                  "<ul class='items' id='it-" + listId + "'></ul>" +
-               "</li>"
-            ).appendTo( "#lists");
+                  "<span class='labelLeft'>Order</span>" +
+                  "<input class='prioField' id='eprio-" + listId + "'>" +
+                  "<button class='ui-button ui-widget ui-corner-all ui-button-icon-only' id='ai-" + listId + "'>Add</button>" +
+                  "<button class='ui-button ui-widget ui-corner-all ui-button-icon-only' id='del-" + listId + "'>Delete</button>" +
+                  "<button class='ui-button ui-widget ui-corner-all ui-button-icon-only' id='opt-" + listId + "'>...</button>" +
+                "</span>" +
+                "<span class='listOptions' id='listOpts-" + listId + "' hidden>" +
+                  "<span class='labelLeft'>Show as</span>" +
+                  "<select id='loShow-" + listId + "'>" + 
+                    "<option value='front'>front page</option>" + 
+                    "<option value='tab'>separate tab</option>" + 
+                  "</select>" + 
+                  "<input class='listOptionCheck' type='checkbox' checked='checked' id='loExp-" + listId + "'>Show expiration</input>" + 
+                  "<input class='listOptionCheck' type='checkbox' checked='checked' id='loPrio-" + listId + "'>Show priority</input>" + 
+                  "<input class='listOptionCheck' type='checkbox' checked='checked' id='loStatus-" + listId + "'>Show status</input>" + 
+                "</span>" +
+                "<ul class='items' id='it-" + listId + "'></ul>";
+
+            if( optShow == 'tab') {
+              $( "<li id='" + listId + "'>" + 
+                    "<a href='#tab-" + listId + "'>" + 
+                      "<span class='listTabHeader' id='lth-" + listId + "'>" + listName +
+                      "</span>" + 
+                    "</a>" + 
+                  "</li>").appendTo( "#tabheader");
+              $("<div id='tab-" + listId + "'>" +
+                listHtml +
+                "</ul>").appendTo( '#tabs');
+            } else {
+              $( "<li class='listEntry' id='" + listId + "'>" +
+                 listHtml +
+                 "</li>"
+              ).appendTo( "#lists");
+            }
             $( '#eprio-' + listId).spinner( {
                   min:0,
                 });
@@ -375,7 +394,7 @@
             $( '#loPrio-' + listId).prop( 'checked', optPrio);
             $( '#loStatus-' + listId).prop( 'checked', optStatus);
             <!-- Make properties editable -->
-            linkInputDirect( 'list/' + listId, 'name',  'eln-' + listId);
+            linkInputDirect( 'list/' + listId, 'name',  'eln-' + listId, refreshLists);
             linkInputDirect( 'list/' + listId, 'priority',  'eprio-' + listId, function(value) {setOrderFromPrio(listId,value);}, 'spinchange');
             linkInputDirect( 'list/' + listId, 'warning_period', 'ewp-' + listId);
             linkInputDirect( 'list/' + listId, 'optShow', 'loShow-' + listId);
