@@ -130,3 +130,8 @@ The following steps are required to execute the server without a command window.
 * Item ids must remain stable
 * Item ids will be used by front-end for DOM object ids
 
+## Fonts used
+
+The `?` and `✔` characters used for the status icons are from the FreeSans
+font, which is licensed as GPL 3.0 or later and therefore constitute derived
+works, probably.

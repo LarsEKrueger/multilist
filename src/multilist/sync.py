@@ -12,19 +12,22 @@ class Synchronizer:
     If the server can be contacted, synchronize the databases.
     """
 
-    def __init__(self, remoteUrl):
+    def __init__(self, remoteUrl, database:db.Databaase):
         self.remoteUrl = remoteUrl
         self.syncSuccess = False
+        self.db = database
 
     def checkRemoteVersion(self):
         """Check if the server at the remote URL replies with the correct name and version. Return true if it worked."""
         result = False
         if self.remoteUrl == "":
+            self.db.setSyncStatus( 'no_remote')
             return False
         try:
-            print(f"Waiting for {self.remoteUrl} to come online")
+            self.db.setSyncStatus( 'waiting_for_remote')
             resp = requests.get(f"{self.remoteUrl}/version", timeout=1.0).json()
             if (resp["name"] == mlv.name) and (resp["version"] == mlv.version):
+                self.db.setSyncStatus( 'remote_present')
                 result = True
         except:
             pass
@@ -41,6 +44,8 @@ class Synchronizer:
 
         # Create a session to avoid the DNS lookup for every request
         with requests.Session() as session:
+
+            self.db.setSyncStatus( 'in_progress')
 
             # Get lists
             remoteLists = session.get(f"{self.remoteUrl}/lists").json()
@@ -213,4 +218,13 @@ class Synchronizer:
                             remoteProps.priority,
                             remoteProps.status,
                         )
+        self.setSyncStatus( 'synced')
         return True
+
+# disconnected
+# initializing synchronization with remote server
+# waiting for remote server to come online
+# remote server online
+# synchronization with remote server in progress
+# synchronization successful
+

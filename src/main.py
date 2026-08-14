@@ -28,14 +28,12 @@ async def backgroundSync():
 
     # Give the app time to start
     await asyncio.sleep(10)
-    synchronizer = sync.Synchronizer(app_settings.ML_SYNC_URL)
+    synchronizer = sync.Synchronizer(app_settings.ML_SYNC_URL, database)
     while True:
         # Try to sync with the server once a minute.
         while not synchronizer.checkRemoteVersion():
             await asyncio.sleep(60)
-        print("Starting sync")
         synchronizer.synchronize(database)
-        print("Sync done. Waiting 30 minutes.")
         await asyncio.sleep(30 * 60)
 
 
@@ -97,6 +95,29 @@ async def jquery():
 async def jquery():
     return serveBinFile("jquery-ui/images/ui-icons_777777_256x240.png", "text/css")
 
+@app.get("/images/sync/no_remote.png")
+async def jquery():
+    return serveBinFile("images/sync/no_remote.png", "text/css")
+
+@app.get("/images/sync/waiting_for_remote.png")
+async def jquery():
+    return serveBinFile("images/sync/waiting_for_remote.png", "text/css")
+
+@app.get("/images/sync/remote_present.png")
+async def jquery():
+    return serveBinFile("images/sync/remote_present.png", "text/css")
+
+@app.get("/images/sync/in_progress.png")
+async def jquery():
+    return serveBinFile("images/sync/in_progress.png", "text/css")
+
+@app.get("/images/sync/unknown.png")
+async def jquery():
+    return serveBinFile("images/sync/unknown.png", "text/css")
+
+@app.get("/images/sync/synced.png")
+async def jquery():
+    return serveBinFile("images/sync/synced.png", "text/css")
 
 @app.get("/version")
 async def version():
@@ -198,6 +219,9 @@ async def syncItem(listId: str, itemId: str, itemProps: db.SyncItemProps):
     )
     return {}
 
+@app.get("/status")
+async def getStatus():
+    return { 'sync': database.getSyncStatus() }
 
 #   @app.middleware("http")
 #   async def middleware(request: Request, call_next):

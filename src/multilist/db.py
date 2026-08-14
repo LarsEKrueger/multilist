@@ -102,6 +102,8 @@ class Database:
         if prettySafe:
             self.writeIndent = 2
 
+        self.syncStatus = 'unknown'
+
         self.data = {}
         # Load the DB if it exists or create an empty one
         try:
@@ -298,3 +300,8 @@ class Database:
             self.lists()[listId]["items"][itemId],
             ["subject", "details", "expires", "priority", "status", "last_modified"],
         )
+    # ---------- sync API ----------
+    def setSyncStatus(self,status):
+        self.syncStatus = status
+    def getSyncStatus(self):
+        return self.syncStatus

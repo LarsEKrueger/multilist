@@ -5,21 +5,19 @@
     <title>MultiList App</title>
     <link rel="stylesheet" href="jquery-ui.css">
     <style>
-      .delBtn {
+      .topBar {
+        display:flex;
+        flex-direction:row;
       }
-      .delBtn::after {
-        content:"\274c";
-      }
-      .addBtn {
-      }
-      .addBtn::after {
-        content:"\2795";
+      .syncStatus {
+        width:64px;
       }
       .soon {
         padding:0;
         margin:0;
         margin-bottom:1em;
         background:black;
+        width:100%;
       }
       .soonEntry {
         background:white;
@@ -554,14 +552,29 @@
         })
       }
 
-      <!-- Load the initial list -->
+      // Update the sync status
+      function checkStatus()
+      {
+        $.ajax({ url: "/status", type: "GET", dataType:"json"}).done(function(stati) {
+          console.log( stati);
+          $( "#syncStatus").html( "<img src='images/sync/" + stati["sync"] + ".png'>");
+          window.setTimeout( checkStatus, 10000);
+        });
+      }
+
+      // Load the initial list
       $( document ).ready(function() {
         $( '#tabs').tabs();
         refreshLists();
+        // Start the timer to show the sync status
+        checkStatus();
       });
     </script>
-    <ul class='soon' id='soon'>
-    </ul>
+    <span class='topBar'>
+      <ul class='soon' id='soon'>
+      </ul>
+      <span class='syncStatus' id='syncStatus'>SYNC</span>
+    </span>
     <div id='tabs'>
     </div>
   </body>
