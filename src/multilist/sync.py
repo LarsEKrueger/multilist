@@ -12,7 +12,7 @@ class Synchronizer:
     If the server can be contacted, synchronize the databases.
     """
 
-    def __init__(self, remoteUrl, database:db.Databaase):
+    def __init__(self, remoteUrl, database:db.Database):
         self.remoteUrl = remoteUrl
         self.syncSuccess = False
         self.db = database
@@ -218,7 +218,7 @@ class Synchronizer:
                             remoteProps.priority,
                             remoteProps.status,
                         )
-        self.setSyncStatus( 'synced')
+        self.db.setSyncStatus( 'synced')
         return True
 
 # disconnected
